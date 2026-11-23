@@ -1,0 +1,3485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#12151E" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>트럼펫 마스터 (Trumpet Master) - 트럼펫 운지 &amp; 박자 연습 게임</title>
+
+  <!-- Google Fonts (Offline-safe fallback to system Korean sans-serif) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =========================================================================
+       DESIGN TOKENS & RESET (Concert Hall Dark + Warm Brass Gold Theme)
+    ========================================================================= */
+    :root {
+      --bg-deep: #0E1118;
+      --bg-surface: #171C28;
+      --bg-elevated: #202738;
+      --bg-card-hover: #283146;
+      --border-subtle: rgba(212, 175, 55, 0.22);
+      --border-strong: rgba(245, 208, 97, 0.55);
+
+      --brass-primary: #D4AF37;
+      --brass-bright: #F5D061;
+      --brass-dark: #9B7718;
+      --brass-glow: rgba(245, 208, 97, 0.35);
+
+      --paper-bg: #FFFDF7;
+      --paper-ink: #1C1917;
+      --paper-muted: #78716C;
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+
+      --success: #22C55E;
+      --success-bg: rgba(34, 197, 94, 0.16);
+      --good: #38BDF8;
+      --danger: #EF4444;
+      --danger-bg: rgba(239, 68, 68, 0.18);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.42);
+      --font-main: 'Noto Sans KR', 'Inter', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: radial-gradient(circle at 20% 0%, #1F2638 0%, #0E1118 65%);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      touch-action: manipulation;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      color: inherit;
+      background: transparent;
+    }
+
+    /* =========================================================================
+       PORTRAIT ROTATION RECOMMENDATION BANNER
+    ========================================================================= */
+    #portraitBanner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 14px;
+      background: linear-gradient(90deg, rgba(155, 119, 24, 0.92), rgba(212, 175, 55, 0.92));
+      color: #12151E;
+      font-size: 12.5px;
+      font-weight: 700;
+      z-index: 90;
+      flex-shrink: 0;
+    }
+
+    @media (orientation: portrait) and (max-width: 760px) {
+      #portraitBanner:not(.dismissed) {
+        display: flex;
+      }
+    }
+
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .banner-btn {
+      background: rgba(18, 21, 30, 0.85);
+      color: #F5D061;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .banner-close {
+      background: rgba(18, 21, 30, 0.2);
+      color: #12151E;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* =========================================================================
+       APP SHELL & SCREENS
+    ========================================================================= */
+    #appShell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .screen {
+      display: none;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================================
+       HOME SCREEN (4 MAIN MENUS)
+    ========================================================================= */
+    #homeScreen {
+      overflow-y: auto;
+      padding: 18px clamp(16px, 3vw, 36px) 24px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .home-container {
+      width: 100%;
+      max-width: 1060px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .home-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-emblem {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #F5D061 0%, #D4AF37 55%, #8C6812 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35), inset 0 1px 2px rgba(255,255,255,0.65);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #FFF7D6 0%, #F5D061 50%, #D4AF37 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .home-settings-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.18s ease;
+    }
+
+    .pill-toggle:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .pill-toggle.active {
+      background: rgba(212, 175, 55, 0.18);
+      border-color: var(--brass-bright);
+      color: var(--brass-bright);
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 560px) {
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .menu-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      text-align: left;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, rgba(32, 39, 56, 0.96), rgba(20, 25, 37, 0.98));
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-card);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      overflow: hidden;
+    }
+
+    .menu-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(245, 208, 97, 0.12), transparent 62%);
+      pointer-events: none;
+    }
+
+    .menu-card:hover, .menu-card:active {
+      transform: translateY(-2px);
+      border-color: var(--brass-bright);
+      box-shadow: 0 12px 30px rgba(212, 175, 55, 0.18);
+    }
+
+    .menu-icon-wrap {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 28px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(245, 208, 97, 0.28);
+    }
+
+    .menu-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--brass-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 3px;
+    }
+
+    .menu-card h2 {
+      font-size: clamp(17px, 2.2vw, 20px);
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .menu-card p {
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--text-secondary);
+    }
+
+    .home-footer-tip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* =========================================================================
+       SUBMENU SCREEN (SCALES / METHOD BOOKS / CLASSICAL REPERTOIRE)
+    ========================================================================= */
+    #submenuScreen {
+      overflow-y: auto;
+      padding: 14px clamp(16px, 3vw, 32px) 24px;
+    }
+
+    .submenu-container {
+      width: 100%;
+      max-width: 1020px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .submenu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .btn-back:hover {
+      border-color: var(--brass-bright);
+      color: var(--brass-bright);
+    }
+
+    .submenu-title-block h2 {
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-weight: 900;
+      color: var(--brass-bright);
+    }
+
+    .submenu-title-block p {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+    }
+
+    .piece-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .piece-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(155deg, rgba(32, 39, 56, 0.95), rgba(22, 27, 39, 0.98));
+      border: 1px solid var(--border-subtle);
+      text-align: left;
+      transition: all 0.16s ease;
+    }
+
+    .piece-card:hover {
+      border-color: var(--brass-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(212, 175, 55, 0.16);
+    }
+
+    .piece-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .piece-index {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: rgba(212, 175, 55, 0.18);
+      color: var(--brass-bright);
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .piece-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+    }
+
+    .piece-card h3 {
+      font-size: 15.5px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+
+    .piece-card p {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .piece-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      font-size: 11.5px;
+      color: var(--brass-primary);
+      font-weight: 700;
+    }
+
+    /* =========================================================================
+       PRACTICE / GAMEPLAY SCREEN (LANDSCAPE SPLIT-SCREEN)
+    ========================================================================= */
+    #practiceScreen {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #practiceScreen.active {
+      display: flex;
+    }
+
+    /* Top Control Bar */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 12px;
+      background: rgba(16, 20, 30, 0.96);
+      border-bottom: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .top-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .top-left, .top-center, .top-right {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      height: 34px;
+      padding: 0 11px;
+      border-radius: 9px;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: all 0.14s ease;
+    }
+
+    .ctrl-btn:hover {
+      border-color: var(--brass-bright);
+    }
+
+    .ctrl-btn.primary {
+      background: linear-gradient(135deg, #F5D061, #D4AF37);
+      color: #12151E;
+      border-color: transparent;
+      box-shadow: 0 3px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    .ctrl-btn.primary.playing {
+      background: linear-gradient(135deg, #F87171, #DC2626);
+      color: #FFFFFF;
+      box-shadow: 0 3px 12px rgba(239, 68, 68, 0.32);
+    }
+
+    .ctrl-btn.toggle-on {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: var(--brass-bright);
+      color: var(--brass-bright);
+    }
+
+    .ctrl-btn.hide-fingering-btn.hidden-mode {
+      background: rgba(139, 92, 246, 0.24);
+      border-color: #A78BFA;
+      color: #DDD6FE;
+    }
+
+    .piece-title-chip {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--brass-bright);
+      max-width: 210px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bpm-control {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 9px;
+      height: 34px;
+      padding: 0 6px;
+    }
+
+    .bpm-step {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.07);
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bpm-step:active {
+      background: var(--brass-primary);
+      color: #12151E;
+    }
+
+    .bpm-val {
+      min-width: 58px;
+      text-align: center;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--brass-bright);
+    }
+
+    .hud-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 0 10px;
+      height: 34px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+
+    .hud-stat span {
+      color: var(--brass-bright);
+      font-weight: 900;
+      margin-left: 3px;
+    }
+
+    /* Main Split Workspace: Left 65% (Sheet + Fingering) | Right 35% (3 Brass Valves) */
+    .workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      padding: 10px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Responsive fallback for narrow portrait screens */
+    @media (orientation: portrait) and (max-width: 680px) {
+      .workspace {
+        flex-direction: column;
+        padding: 8px;
+        gap: 8px;
+      }
+      .left-stage {
+        flex: 1.35 !important;
+      }
+      .right-valves-panel {
+        flex: 0.95 !important;
+        max-width: 100% !important;
+      }
+    }
+
+    .left-stage {
+      flex: 65;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* Upper Zone: Crisp White Sheet Music Card */
+    .sheet-zone {
+      position: relative;
+      flex: 1.55;
+      min-height: 0;
+      background: var(--paper-bg);
+      border-radius: var(--radius-lg);
+      border: 2px solid rgba(212, 175, 55, 0.45);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38), inset 0 0 0 1px rgba(28, 25, 23, 0.06);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: flex 0.25s ease;
+    }
+
+    .left-stage.fingering-hidden .sheet-zone {
+      flex: 3.4;
+    }
+
+    .sheet-header-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 14px;
+      background: #F4EFE4;
+      border-bottom: 1px solid #E5DCC9;
+      color: var(--paper-ink);
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .sheet-note-readout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .solfege-pill {
+      background: #1C1917;
+      color: #F5D061;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 900;
+    }
+
+    .chart-nav-bar {
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chart-nav-bar.visible {
+      display: flex;
+    }
+
+    .mini-paper-btn {
+      padding: 3px 9px;
+      border-radius: 7px;
+      background: #E7DFCE;
+      color: #1C1917;
+      font-size: 11.5px;
+      font-weight: 800;
+      border: 1px solid #D5C8B0;
+    }
+
+    .mini-paper-btn:active {
+      background: #D4AF37;
+      color: #FFF;
+    }
+
+    .mini-paper-btn.active {
+      background: #1C1917;
+      color: #F5D061;
+      border-color: #1C1917;
+    }
+
+    .sheet-scroll-viewport {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      display: flex;
+      align-items: center;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: #D4AF37 transparent;
+    }
+
+    #sheetSvg {
+      display: block;
+      height: 100%;
+      max-height: 205px;
+      min-height: 132px;
+      flex-shrink: 0;
+    }
+
+    /* Quick Chromatic Selector Bar (Only in Menu 1: Fingering Chart) */
+    #chartStripWrap {
+      display: none;
+      padding: 5px 10px;
+      background: #F4EFE4;
+      border-top: 1px solid #E5DCC9;
+      overflow-x: auto;
+      gap: 5px;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+
+    #chartStripWrap.visible {
+      display: flex;
+    }
+
+    #chartStripWrap::-webkit-scrollbar {
+      display: none;
+    }
+
+    .note-chip {
+      padding: 4px 8px;
+      border-radius: 7px;
+      background: #FFFDF7;
+      border: 1px solid #D6CCB8;
+      color: #44403C;
+      font-size: 11px;
+      font-weight: 800;
+      flex-shrink: 0;
+      transition: all 0.12s;
+    }
+
+    .note-chip.active {
+      background: #D4AF37;
+      border-color: #9B7718;
+      color: #12151E;
+      box-shadow: 0 2px 6px rgba(212, 175, 55, 0.45);
+    }
+
+    /* Floating Feedback Overlay inside Sheet Card */
+    #judgeOverlay {
+      position: absolute;
+      top: 42px;
+      right: 14px;
+      z-index: 20;
+      pointer-events: none;
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 900;
+      opacity: 0;
+      transform: translateY(-6px) scale(0.95);
+      transition: all 0.16s ease;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      max-width: 78%;
+      text-align: right;
+    }
+
+    #judgeOverlay.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    #judgeOverlay.perfect {
+      background: #16A34A;
+      color: #FFFFFF;
+    }
+
+    #judgeOverlay.good {
+      background: #0284C7;
+      color: #FFFFFF;
+    }
+
+    #judgeOverlay.wrong {
+      background: #DC2626;
+      color: #FFFFFF;
+    }
+
+    /* Count-In Overlay */
+    #countInOverlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(14, 17, 24, 0.72);
+      backdrop-filter: blur(2px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 25;
+      color: #F5D061;
+    }
+
+    #countInOverlay.show {
+      display: flex;
+    }
+
+    #countInNumber {
+      font-size: 62px;
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 0 0 28px rgba(245, 208, 97, 0.7);
+      animation: popBeat 0.35s ease;
+    }
+
+    #countInSub {
+      font-size: 13px;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin-top: 6px;
+    }
+
+    @keyframes popBeat {
+      0% { transform: scale(1.45); opacity: 0.4; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Lower Zone: Trumpet Fingering Display */
+    .fingering-zone {
+      flex: 0.92;
+      min-height: 76px;
+      background: linear-gradient(155deg, rgba(28, 35, 51, 0.96), rgba(18, 22, 33, 0.98));
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .left-stage.fingering-hidden .fingering-zone {
+      flex: 0 0 44px;
+      min-height: 44px;
+      padding: 6px 14px;
+      justify-content: center;
+    }
+
+    .fingering-content {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .left-stage.fingering-hidden .fingering-content {
+      display: none;
+    }
+
+    .fingering-hidden-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      color: #C4B5FD;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .left-stage.fingering-hidden .fingering-hidden-badge {
+      display: flex;
+    }
+
+    .target-valve-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .fingering-label-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .fingering-caption {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .fingering-code {
+      font-size: clamp(16px, 2.2vw, 22px);
+      font-weight: 900;
+      color: var(--brass-bright);
+    }
+
+    .valve-dots-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .guide-dot {
+      width: clamp(38px, 5vw, 48px);
+      height: clamp(38px, 5vw, 48px);
+      border-radius: 50%;
+      border: 2.5px solid rgba(203, 213, 225, 0.35);
+      background: rgba(14, 17, 24, 0.55);
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.14s ease;
+    }
+
+    .guide-dot.pressed {
+      background: radial-gradient(circle at 35% 30%, #FFF3B0 0%, #F5D061 45%, #B8860B 100%);
+      border-color: #FFF7D6;
+      color: #12151E;
+      box-shadow: 0 0 18px rgba(245, 208, 97, 0.65);
+      transform: scale(1.06);
+    }
+
+    .next-note-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .next-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .mini-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(203, 213, 225, 0.35);
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mini-dot.pressed {
+      background: var(--brass-primary);
+      border-color: var(--brass-bright);
+      color: #12151E;
+    }
+
+    @media (max-width: 780px) {
+      .next-note-preview {
+        display: none;
+      }
+    }
+
+    /* =========================================================================
+       RIGHT AREA (~35%): ERGONOMIC 3-VALVE TRUMPET INSTRUMENT PANEL
+    ========================================================================= */
+    .right-valves-panel {
+      flex: 35;
+      max-width: 410px;
+      min-width: 235px;
+      background: linear-gradient(170deg, #252B3B 0%, #161B26 60%, #10141D 100%);
+      border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border-subtle);
+      box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      padding: 12px 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      touch-action: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative brass pipe bar behind valves */
+    .right-valves-panel::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 44%;
+      height: 16px;
+      background: linear-gradient(180deg, #8C6812 0%, #F5D061 38%, #C49B2A 65%, #5C4308 100%);
+      opacity: 0.42;
+      pointer-events: none;
+    }
+
+    .valves-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 2;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .live-grip-badge {
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(212, 175, 55, 0.16);
+      border: 1px solid rgba(245, 208, 97, 0.4);
+      color: var(--brass-bright);
+      font-size: 11.5px;
+      font-weight: 900;
+    }
+
+    .valves-stage {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: center;
+      justify-items: center;
+      z-index: 2;
+      touch-action: none;
+    }
+
+    .valve-unit {
+      width: 100%;
+      height: 100%;
+      max-height: 175px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      touch-action: none;
+    }
+
+    /* Tactile 3D Metallic Brass Valve Button */
+    .valve-btn {
+      position: relative;
+      width: clamp(68px, 10.5vw, 96px);
+      height: clamp(68px, 10.5vw, 96px);
+      border-radius: 50%;
+      background: conic-gradient(from 135deg, #F8E08E, #B8860B, #FFF3B0, #9B7718, #E5C158, #8A6510, #F8E08E);
+      padding: 7px;
+      box-shadow:
+        0 12px 0 #6B4E0A,
+        0 16px 24px rgba(0, 0, 0, 0.65),
+        inset 0 2px 4px rgba(255, 255, 255, 0.75);
+      transition: transform 0.055s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.055s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: none;
+    }
+
+    /* Mother-of-pearl concave finger cap */
+    .valve-pearl {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, #FFFFFF 0%, #F5F0E1 48%, #DDD4BE 82%, #BCAE92 100%);
+      box-shadow:
+        inset 0 4px 8px rgba(0, 0, 0, 0.18),
+        inset 0 -3px 6px rgba(255, 255, 255, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .valve-num {
+      font-size: clamp(24px, 3.2vw, 32px);
+      font-weight: 900;
+      color: #292524;
+      line-height: 1;
+    }
+
+    .valve-key-hint {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #78716C;
+      margin-top: 2px;
+    }
+
+    /* Spring-down depressed valve state */
+    .valve-btn.pressed {
+      transform: translateY(9px) scale(0.97);
+      box-shadow:
+        0 3px 0 #5C4308,
+        0 5px 12px rgba(0, 0, 0, 0.55),
+        0 0 24px rgba(245, 208, 97, 0.72);
+    }
+
+    .valve-btn.pressed .valve-pearl {
+      background: radial-gradient(circle at 35% 30%, #FFF9DB 0%, #F5D061 60%, #D4AF37 100%);
+    }
+
+    .valve-btn.pressed .valve-num {
+      color: #12151E;
+    }
+
+    .valve-btn.pressed .valve-key-hint {
+      color: #422006;
+    }
+
+    .valve-stem-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* Blow / Open (0) Confirm Button */
+    .blow-btn {
+      z-index: 2;
+      width: 100%;
+      height: 46px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #334155 0%, #1E293B 100%);
+      border: 1.5px solid rgba(245, 208, 97, 0.48);
+      color: #F8FAFC;
+      font-size: 13.5px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+      transition: transform 0.08s ease, background 0.12s ease;
+      touch-action: none;
+      flex-shrink: 0;
+    }
+
+    .blow-btn:active, .blow-btn.active {
+      transform: scale(0.97);
+      background: linear-gradient(135deg, #F5D061, #D4AF37);
+      color: #12151E;
+      box-shadow: 0 0 18px rgba(245, 208, 97, 0.55);
+    }
+
+    /* =========================================================================
+       RESULT SUMMARY MODAL & TOAST
+    ========================================================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 16, 0.78);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 440px;
+      background: linear-gradient(155deg, #21283B 0%, #141925 100%);
+      border: 1.5px solid var(--brass-bright);
+      border-radius: 22px;
+      padding: 22px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+      animation: modalIn 0.22s ease;
+    }
+
+    @keyframes modalIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .grade-circle {
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, #FFF3B0 0%, #F5D061 45%, #B8860B 100%);
+      color: #12151E;
+      font-size: 44px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 28px rgba(245, 208, 97, 0.55);
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 14px 0 18px;
+    }
+
+    .result-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 6px;
+    }
+
+    .result-box .lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .result-box .val {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--brass-bright);
+      margin-top: 2px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      flex: 1;
+      height: 42px;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 800;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .modal-btn.gold {
+      background: linear-gradient(135deg, #F5D061, #D4AF37);
+      color: #12151E;
+      border: none;
+    }
+
+    #toastBox {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(20, 25, 37, 0.95);
+      border: 1px solid var(--brass-bright);
+      color: #FFFDF7;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s ease;
+      z-index: 120;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    #toastBox.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div id="appShell">
+    <!-- Portrait Mode Subtle Recommendation Banner -->
+    <div id="portraitBanner" role="status">
+      <span>📱 가로 모드로 돌리면 실제 트럼펫처럼 3개의 밸브를 편하게 누를 수 있습니다.</span>
+      <div class="banner-actions">
+        <button id="btnTryLandscape" class="banner-btn" type="button">가로 전체화면</button>
+        <button id="btnDismissBanner" class="banner-close" type="button" aria-label="닫기">✕</button>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         SCREEN 1: HOME SCREEN (4 MAIN MENUS)
+    ====================================================================== -->
+    <section id="homeScreen" class="screen active" aria-label="메인 메뉴">
+      <div class="home-container">
+        <header class="home-header">
+          <div class="brand-group">
+            <div class="brand-emblem" aria-hidden="true">
+              <!-- Minimalist Brass Trumpet SVG Emblem -->
+              <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
+                <path d="M5 17H22L31 11V25L22 19H5V17Z" fill="#12151E"/>
+                <rect x="11" y="11" width="2.6" height="12" rx="1.2" fill="#12151E"/>
+                <rect x="15" y="11" width="2.6" height="12" rx="1.2" fill="#12151E"/>
+                <rect x="19" y="11" width="2.6" height="12" rx="1.2" fill="#12151E"/>
+                <circle cx="12.3" cy="10" r="1.8" fill="#FFFDF7"/>
+                <circle cx="16.3" cy="10" r="1.8" fill="#FFFDF7"/>
+                <circle cx="20.3" cy="10" r="1.8" fill="#FFFDF7"/>
+              </svg>
+            </div>
+            <div>
+              <h1 class="brand-title">트럼펫 마스터</h1>
+              <p class="brand-subtitle">실전 악보 · 박자 리듬 게임 · 표준 B♭ 트럼펫 운지 연습</p>
+            </div>
+          </div>
+
+          <div class="home-settings-bar">
+            <button id="btnPitchModeHome" class="pill-toggle active" type="button">
+              🎺 B♭ 트럼펫 실음 (표준)
+            </button>
+            <button id="btnFullscreenHome" class="pill-toggle" type="button">
+              ⛶ 전체화면
+            </button>
+          </div>
+        </header>
+
+        <div class="menu-grid">
+          <!-- Menu 1 -->
+          <button class="menu-card" data-menu="chart" type="button">
+            <div class="menu-icon-wrap" aria-hidden="true">🎯</div>
+            <div>
+              <span class="menu-badge">Menu 01 · 기초 완벽 마스터</span>
+              <h2>운지표 연습</h2>
+              <p>낮은 파♯(F♯3)부터 높은 도(C6)까지 전체 트럼펫 운지를 하나씩 누르며 소리와 함께 익히고 랜덤 퀴즈로 점검합니다.</p>
+            </div>
+          </button>
+
+          <!-- Menu 2 -->
+          <button class="menu-card" data-menu="scales" type="button">
+            <div class="menu-icon-wrap" aria-hidden="true">🎼</div>
+            <div>
+              <span class="menu-badge">Menu 02 · 음계 &amp; 리듬</span>
+              <h2>음계 연습</h2>
+              <p>크로매틱 반음계, C·G장조, A단조, 블루스, 한국 아리랑 민속 5음계, 스페인 프리지안 음계를 박자에 맞춰 연습합니다.</p>
+            </div>
+          </button>
+
+          <!-- Menu 3 -->
+          <button class="menu-card" data-menu="methods" type="button">
+            <div class="menu-icon-wrap" aria-hidden="true">📖</div>
+            <div>
+              <span class="menu-badge">Menu 03 · 퍼블릭 도메인 교본</span>
+              <h2>트럼펫 교본</h2>
+              <p>전 세계 트럼펫 연주자의 필독서인 아르방(Arban) 기초·당김음과 클라크(Clarke) 제1·2 테크닉 연구를 게임처럼 연습합니다.</p>
+            </div>
+          </button>
+
+          <!-- Menu 4 -->
+          <button class="menu-card" data-menu="classics" type="button">
+            <div class="menu-icon-wrap" aria-hidden="true">🎻</div>
+            <div>
+              <span class="menu-badge">Menu 04 · 클래식 명곡 (IMSLP)</span>
+              <h2>클래식 명곡</h2>
+              <p>하이든 트럼펫 협주곡 1·3악장, 훔멜 협주곡, 베토벤 환희의 송가 등 저작권이 만료된 명곡 테마를 직접 연주해 보세요.</p>
+            </div>
+          </button>
+        </div>
+
+        <footer class="home-footer-tip">
+          <span>💡 <strong>멀티터치 지원:</strong> 스마트폰에서 1+2, 1+3, 2+3, 1+2+3 밸브를 동시에 누를 수 있습니다. (PC 키보드: 1/J, 2/K, 3/L, Space)</span>
+          <span>🔊 100% 자체 합성 트럼펫 사운드 (저작권 프리)</span>
+        </footer>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SCREEN 2: SUBMENU LIST (SCALES / METHOD BOOKS / CLASSICS)
+    ====================================================================== -->
+    <section id="submenuScreen" class="screen" aria-label="곡 선택">
+      <div class="submenu-container">
+        <div class="submenu-header">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <button id="btnSubmenuBack" class="btn-back" type="button">← 홈으로</button>
+            <div class="submenu-title-block">
+              <h2 id="submenuHeading">음계 연습</h2>
+              <p id="submenuDesc">연습할 항목을 선택하세요.</p>
+            </div>
+          </div>
+        </div>
+        <div id="pieceGrid" class="piece-grid"></div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         SCREEN 3: PRACTICE & RHYTHM GAME SCREEN (LANDSCAPE SPLIT-SCREEN)
+    ====================================================================== -->
+    <section id="practiceScreen" class="screen" aria-label="트럼펫 연습 화면">
+      <!-- Top Control Bar -->
+      <header class="top-bar">
+        <div class="top-left">
+          <button id="btnPracticeBack" class="ctrl-btn" type="button">← 목록</button>
+          <span id="practiceTitle" class="piece-title-chip">운지표 연습</span>
+        </div>
+
+        <div class="top-center">
+          <!-- Rhythm Controls (hidden in Chart mode) -->
+          <button id="btnPlayPause" class="ctrl-btn primary" type="button">▶ 시작</button>
+          <button id="btnWaitMode" class="ctrl-btn" type="button" title="음표를 정확히 눌러야 다음으로 넘어갑니다">🐢 대기모드 OFF</button>
+          <div id="bpmWrap" class="bpm-control">
+            <button id="btnBpmDown" class="bpm-step" type="button" aria-label="템포 느리게">−</button>
+            <span id="bpmDisplay" class="bpm-val">88 BPM</span>
+            <button id="btnBpmUp" class="bpm-step" type="button" aria-label="템포 빠르게">+</button>
+          </div>
+          <button id="btnMetronome" class="ctrl-btn toggle-on" type="button">⏱ 메트로놈</button>
+          <button id="btnSound" class="ctrl-btn toggle-on" type="button">🔊 소리</button>
+          <button id="btnToggleFingering" class="ctrl-btn hide-fingering-btn" type="button">👁 운지 표시 ON</button>
+          <button id="btnPitchModePractice" class="ctrl-btn toggle-on" type="button" title="B♭ 실음 / C 기보음 전환">B♭ 실음</button>
+        </div>
+
+        <div class="top-right">
+          <div id="hudStats" class="hud-stats">
+            <div class="hud-stat">점수<span id="statScore">0</span></div>
+            <div class="hud-stat">콤보<span id="statCombo">0</span></div>
+            <div class="hud-stat">정확도<span id="statAcc">100%</span></div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Landscape Split Workspace -->
+      <main class="workspace">
+        <!-- LEFT AREA (~65%): Upper Sheet Music + Lower Trumpet Fingering -->
+        <div id="leftStage" class="left-stage">
+          <!-- Upper Zone: Sheet Music -->
+          <div class="sheet-zone">
+            <div class="sheet-header-strip">
+              <div class="sheet-note-readout">
+                <span id="currentSolfegePill" class="solfege-pill">도 (C4)</span>
+                <span id="currentPitchDesc" style="color:#57534E;">표준 운지: 개방(0)</span>
+              </div>
+
+              <!-- Only shown in Menu 1: Fingering Chart -->
+              <div id="chartNavBar" class="chart-nav-bar">
+                <button id="btnChartPrev" class="mini-paper-btn" type="button">◀ 이전 음</button>
+                <button id="btnChartNext" class="mini-paper-btn" type="button">다음 음 ▶</button>
+                <button id="btnChartPlayRef" class="mini-paper-btn" type="button">🔊 소리 듣기</button>
+                <button id="btnChartRandom" class="mini-paper-btn" type="button">🎲 랜덤 퀴즈</button>
+                <button id="btnChartAutoNext" class="mini-paper-btn active" type="button">자동진행 ON</button>
+              </div>
+            </div>
+
+            <div id="sheetViewport" class="sheet-scroll-viewport">
+              <svg id="sheetSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="트럼펫 악보"></svg>
+            </div>
+
+            <!-- Quick chromatic note bar for Menu 1 -->
+            <div id="chartStripWrap"></div>
+
+            <!-- Floating Feedback Badge -->
+            <div id="judgeOverlay">정답!</div>
+
+            <!-- 4-Beat Count-In Overlay -->
+            <div id="countInOverlay">
+              <div id="countInNumber">4</div>
+              <div id="countInSub">박자에 맞춰 밸브를 눌러주세요!</div>
+            </div>
+          </div>
+
+          <!-- Lower Zone: Trumpet Fingering Display (Hideable for Advanced Mode) -->
+          <div class="fingering-zone">
+            <div class="fingering-content">
+              <div class="target-valve-group">
+                <div class="fingering-label-col">
+                  <span class="fingering-caption">목표 트럼펫 운지</span>
+                  <span id="targetFingeringText" class="fingering-code">개방 (0)</span>
+                </div>
+                <div class="valve-dots-row" aria-label="목표 밸브 표시">
+                  <div id="guideDot1" class="guide-dot">1</div>
+                  <div id="guideDot2" class="guide-dot">2</div>
+                  <div id="guideDot3" class="guide-dot">3</div>
+                </div>
+              </div>
+
+              <div id="nextNotePreview" class="next-note-preview">
+                <div class="fingering-label-col" style="text-align:right;">
+                  <span class="fingering-caption">다음 음</span>
+                  <span id="nextNoteLabel" style="font-size:12.5px; font-weight:800; color:#E2E8F0;">레 (D4)</span>
+                </div>
+                <div class="next-dots">
+                  <div id="nextDot1" class="mini-dot">1</div>
+                  <div id="nextDot2" class="mini-dot">2</div>
+                  <div id="nextDot3" class="mini-dot">3</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="fingering-hidden-badge">
+              <span>🔒 고급 모드: 운지표 숨김 — 악보만 보고 직접 운지를 연주하세요!</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT AREA (~35%): 3 Ergonomic Brass Valve Buttons -->
+        <aside class="right-valves-panel" aria-label="트럼펫 3개 밸브 컨트롤러">
+          <div class="valves-header">
+            <span>🎺 트럼펫 밸브 (멀티터치)</span>
+            <span id="liveGripBadge" class="live-grip-badge">현재: 개방(0)</span>
+          </div>
+
+          <div class="valves-stage">
+            <div class="valve-unit">
+              <button id="valveBtn1" class="valve-btn" data-valve="1" type="button" aria-label="1번 밸브">
+                <div class="valve-pearl">
+                  <span class="valve-num">1</span>
+                  <span class="valve-key-hint">Key 1 / J</span>
+                </div>
+              </button>
+              <span class="valve-stem-label">1번 밸브</span>
+            </div>
+
+            <div class="valve-unit">
+              <button id="valveBtn2" class="valve-btn" data-valve="2" type="button" aria-label="2번 밸브">
+                <div class="valve-pearl">
+                  <span class="valve-num">2</span>
+                  <span class="valve-key-hint">Key 2 / K</span>
+                </div>
+              </button>
+              <span class="valve-stem-label">2번 밸브</span>
+            </div>
+
+            <div class="valve-unit">
+              <button id="valveBtn3" class="valve-btn" data-valve="3" type="button" aria-label="3번 밸브">
+                <div class="valve-pearl">
+                  <span class="valve-num">3</span>
+                  <span class="valve-key-hint">Key 3 / L</span>
+                </div>
+              </button>
+              <span class="valve-stem-label">3번 밸브</span>
+            </div>
+          </div>
+
+          <button id="btnBlowConfirm" class="blow-btn" type="button">
+            <span>💨 불기 / 개방(0) 확인</span>
+            <span style="font-size:11px; opacity:0.75;">(Space)</span>
+          </button>
+        </aside>
+      </main>
+    </section>
+  </div>
+
+  <!-- End-of-Piece Score & Grade Summary Modal -->
+  <div id="resultModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="resultModalTitle">
+    <div class="modal-card">
+      <div id="resultGrade" class="grade-circle">S</div>
+      <h2 id="resultModalTitle" style="font-size:20px; font-weight:900; color:#FFFDF7;">연주 완료!</h2>
+      <p id="resultSubtitle" style="font-size:12.5px; color:#CBD5E1; margin-top:4px;">훌륭한 트럼펫 운지 실력입니다!</p>
+
+      <div class="result-grid">
+        <div class="result-box">
+          <div class="lbl">최종 점수</div>
+          <div id="resScore" class="val">0</div>
+        </div>
+        <div class="result-box">
+          <div class="lbl">정확도</div>
+          <div id="resAcc" class="val">100%</div>
+        </div>
+        <div class="result-box">
+          <div class="lbl">최대 콤보</div>
+          <div id="resCombo" class="val">0</div>
+        </div>
+      </div>
+
+      <p id="resBreakdown" style="font-size:12px; color:#94A3B8; margin-bottom:16px;">
+        PERFECT 0 · GOOD 0 · MISS 0
+      </p>
+
+      <div class="modal-actions">
+        <button id="btnResRetry" class="modal-btn gold" type="button">🔄 다시 연주</button>
+        <button id="btnResList" class="modal-btn" type="button">📋 곡 목록</button>
+        <button id="btnResHome" class="modal-btn" type="button">🏠 홈</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Non-blocking Toast Message -->
+  <div id="toastBox" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* =======================================================================
+         1. ACCURATE STANDARD Bb TRUMPET FINGERING DATABASE (Written F#3 ~ C6)
+         Written MIDI 54 (F#3) to 84 (C6). Concert pitch = Written MIDI - 2.
+      ======================================================================== */
+      const TRUMPET_FINGERING_BY_MIDI = {
+        54: [1, 2, 3], // F#3
+        55: [1, 3],    // G3
+        56: [2, 3],    // G#3 / Ab3
+        57: [1, 2],    // A3
+        58: [1],       // Bb3
+        59: [2],       // B3
+        60: [],        // C4 (Middle C)
+        61: [1, 2, 3], // C#4
+        62: [1, 3],    // D4
+        63: [2, 3],    // Eb4
+        64: [1, 2],    // E4
+        65: [1],       // F4
+        66: [2],       // F#4
+        67: [],        // G4
+        68: [2, 3],    // Ab4 / G#4
+        69: [1, 2],    // A4
+        70: [1],       // Bb4
+        71: [2],       // B4
+        72: [],        // C5
+        73: [1, 2],    // C#5
+        74: [1],       // D5
+        75: [2],       // Eb5
+        76: [],        // E5
+        77: [1],       // F5
+        78: [2],       // F#5
+        79: [],        // G5
+        80: [2, 3],    // Ab5 / G#5
+        81: [1, 2],    // A5
+        82: [1],       // Bb5
+        83: [2],       // B5
+        84: []         // C6
+      };
+
+      // Default chromatic chart spelling from F#3 to C6 (31 standard pitches)
+      const CHROMATIC_CHART_NOTES = [
+        'F#3','G3','Ab3','A3','Bb3','B3',
+        'C4','C#4','D4','Eb4','E4','F4','F#4','G4','Ab4','A4','Bb4','B4',
+        'C5','C#5','D5','Eb5','E5','F5','F#5','G5','Ab5','A5','Bb5','B5','C6'
+      ];
+
+      const LETTER_TO_SEMITONE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+      const LETTER_TO_DIATONIC = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+      const LETTER_TO_KOREAN = { C: '도', D: '레', E: '미', F: '파', G: '솔', A: '라', B: '시' };
+
+      /**
+       * Parses a pitch token like "F#4", "Bb4", "C5", or "R" (rest) into full metadata.
+       */
+      function parsePitch(token) {
+        if (!token || token === 'R') {
+          return { isRest: true, token: 'R', labelKo: '쉼표', displayName: '쉼표', valves: [] };
+        }
+        const match = /^([A-G])([#b]?)(-?\d)$/.exec(token);
+        if (!match) {
+          throw new Error('Invalid pitch token: ' + token);
+        }
+        const letter = match[1];
+        const acc = match[2]; // '', '#', 'b'
+        const octave = parseInt(match[3], 10);
+
+        const accOffset = acc === '#' ? 1 : (acc === 'b' ? -1 : 0);
+        const midi = (octave + 1) * 12 + LETTER_TO_SEMITONE[letter] + accOffset;
+        // Diatonic step relative to C4 = 0 (E4 = 2 bottom line, F5 = 10 top line)
+        const diatonicStep = (octave - 4) * 7 + LETTER_TO_DIATONIC[letter];
+        const accSymbol = acc === '#' ? '♯' : (acc === 'b' ? '♭' : '');
+        const valves = TRUMPET_FINGERING_BY_MIDI[midi] ? [...TRUMPET_FINGERING_BY_MIDI[midi]] : [];
+
+        return {
+          isRest: false,
+          token,
+          letter,
+          acc,
+          accSymbol,
+          octave,
+          midi,
+          diatonicStep,
+          valves,
+          solfegeKo: LETTER_TO_KOREAN[letter] + accSymbol,
+          displayName: `${letter}${accSymbol}${octave}`,
+          fullKoLabel: `${LETTER_TO_KOREAN[letter]}${accSymbol} (${letter}${accSymbol}${octave})`
+        };
+      }
+
+      function formatValves(valves) {
+        if (!valves || valves.length === 0) return '개방 (0)';
+        return valves.join('-');
+      }
+
+      function valvesEqual(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) return false;
+        }
+        return true;
+      }
+
+      /**
+       * Finds the closest playable trumpet note that belongs to a given valve combination
+       * (Used in Menu 1 to play the actual sounding note of a wrong fingering!)
+       */
+      function findClosestNoteForValves(valvesArr, referenceMidi) {
+        let bestNote = null;
+        let bestDist = Infinity;
+        for (const token of CHROMATIC_CHART_NOTES) {
+          const info = parsePitch(token);
+          if (valvesEqual(info.valves, valvesArr)) {
+            const dist = Math.abs(info.midi - referenceMidi);
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestNote = info;
+            }
+          }
+        }
+        return bestNote;
+      }
+
+      /* =======================================================================
+         2. PUBLIC DOMAIN MUSICAL CONTENT LIBRARY (MENUS 2, 3, 4)
+         Format per note: [pitchToken, durationInBeats]
+      ======================================================================== */
+      function buildNotes(pairs) {
+        return pairs.map(([p, dur]) => ({
+          ...parsePitch(p),
+          dur,
+          judgeState: null // null | 'perfect' | 'good' | 'miss'
+        }));
+      }
+
+      const LIBRARY = {
+        scales: {
+          title: '음계 연습 (Scale Practice)',
+          desc: '반음계, 장·단조, 블루스, 세계 민속 음계를 박자에 맞춰 연습하세요.',
+          items: [
+            {
+              id: 'scale-chromatic',
+              title: '1. 크로매틱 음계 (반음계)',
+              tag: '전 음정 기초',
+              bpm: 84,
+              beatsPerMeasure: 4,
+              desc: 'C4에서 C5까지 반음씩 올라갔다 내려오며 중음역 전체 운지를 완벽히 익힙니다.',
+              notes: [
+                ['C4',1],['C#4',1],['D4',1],['Eb4',1],
+                ['E4',1],['F4',1],['F#4',1],['G4',1],
+                ['Ab4',1],['A4',1],['Bb4',1],['B4',1],
+                ['C5',2],['B4',1],['Bb4',1],
+                ['A4',1],['Ab4',1],['G4',1],['F#4',1],
+                ['F4',1],['E4',1],['Eb4',1],['D4',1],
+                ['C#4',1],['C4',3]
+              ]
+            },
+            {
+              id: 'scale-cmajor',
+              title: '2. C장조 음계 & 아르페지오',
+              tag: '초급 필수',
+              bpm: 92,
+              beatsPerMeasure: 4,
+              desc: '트럼펫 입문자의 가장 기본이 되는 C장조 상·하행 음계와 분산 화음입니다.',
+              notes: [
+                ['C4',1],['D4',1],['E4',1],['F4',1],
+                ['G4',1],['A4',1],['B4',1],['C5',1],
+                ['C5',1],['B4',1],['A4',1],['G4',1],
+                ['F4',1],['E4',1],['D4',1],['C4',1],
+                ['C4',1],['E4',1],['G4',1],['C5',1],
+                ['G4',1],['E4',1],['C4',2]
+              ]
+            },
+            {
+              id: 'scale-aminor',
+              title: '3. A단조 음계 (화성 단음계)',
+              tag: '단조 감성',
+              bpm: 88,
+              beatsPerMeasure: 4,
+              desc: '7번째 음 솔♯(G♯4)이 특징인 클래식 화성 단음계로 2-3번 운지 연결을 훈련합니다.',
+              notes: [
+                ['A3',1],['B3',1],['C4',1],['D4',1],
+                ['E4',1],['F4',1],['G#4',1],['A4',1],
+                ['A4',1],['G#4',1],['F4',1],['E4',1],
+                ['D4',1],['C4',1],['B3',1],['A3',1],
+                ['A3',1],['C4',1],['E4',1],['A4',1],
+                ['E4',1],['C4',1],['A3',2]
+              ]
+            },
+            {
+              id: 'scale-gmajor',
+              title: '4. G장조 음계 (F♯ 집중 연습)',
+              tag: '샵(#) 1개',
+              bpm: 94,
+              beatsPerMeasure: 4,
+              desc: '낮은 솔(G3)부터 중음 솔(G4)까지 파♯(2번 밸브) 운지를 자연스럽게 익힙니다.',
+              notes: [
+                ['G3',1],['A3',1],['B3',1],['C4',1],
+                ['D4',1],['E4',1],['F#4',1],['G4',1],
+                ['G4',1],['F#4',1],['E4',1],['D4',1],
+                ['C4',1],['B3',1],['A3',1],['G3',1],
+                ['G3',1],['B3',1],['D4',1],['G4',1],
+                ['D4',1],['B3',1],['G3',2]
+              ]
+            },
+            {
+              id: 'scale-blues',
+              title: '5. C 블루스 음계 (재즈 그루브)',
+              tag: '블루스 / 재즈',
+              bpm: 96,
+              beatsPerMeasure: 4,
+              desc: '재즈 트럼펫의 핵심! 미♭, 파♯(블루노트), 시♭을 활용한 리듬감 있는 블루스 연습입니다.',
+              notes: [
+                ['C4',1],['Eb4',1],['F4',0.5],['F#4',0.5],['G4',1],
+                ['Bb4',1],['C5',2],['R',1],
+                ['C5',1],['Bb4',1],['G4',0.5],['F#4',0.5],['F4',1],
+                ['Eb4',1],['C4',2],['R',1],
+                ['C4',0.5],['Eb4',0.5],['F4',1],['F#4',0.5],['G4',0.5],['Bb4',1],
+                ['C5',1],['Bb4',0.5],['G4',0.5],['C4',2]
+              ]
+            },
+            {
+              id: 'scale-korean-folk',
+              title: '6. 한국 민속 음계 (아리랑 평조 5음계)',
+              tag: '한국 민속',
+              bpm: 86,
+              beatsPerMeasure: 3,
+              desc: '우리 민족의 5음계(도-레-미-솔-라) 연습과 친숙한 아리랑 선율을 3/4박자로 연주합니다.',
+              notes: [
+                ['C4',1],['D4',1],['E4',1],
+                ['G4',1],['A4',1],['C5',1],
+                ['C5',1],['A4',1],['G4',1],
+                ['E4',1],['D4',1],['C4',1],
+                // Arirang phrase
+                ['G4',1.5],['A4',0.5],['G4',1],
+                ['G4',1],['A4',1],['C5',1],
+                ['D5',1.5],['E5',0.5],['D5',1],
+                ['C5',2],['R',1],
+                ['E5',1],['E5',1],['E5',1],
+                ['D5',1],['C5',1],['A4',1],
+                ['G4',1.5],['A4',0.5],['G4',1],
+                ['E4',2],['C4',1]
+              ]
+            },
+            {
+              id: 'scale-spanish-phrygian',
+              title: '7. 스페인 프리지안 민속 음계',
+              tag: '스페인 민속',
+              bpm: 94,
+              beatsPerMeasure: 4,
+              desc: '투우사의 정열적인 트럼펫 선율에 자주 쓰이는 프리지안 도미넌트(E-F-G♯-A-B-C-D-E) 음계입니다.',
+              notes: [
+                ['E4',1],['F4',1],['G#4',1],['A4',1],
+                ['B4',1],['C5',1],['D5',1],['E5',1],
+                ['E5',1],['D5',1],['C5',1],['B4',1],
+                ['A4',1],['G#4',1],['F4',1],['E4',1],
+                ['E4',0.5],['F4',0.5],['G#4',1],['A4',0.5],['G#4',0.5],['F4',1],
+                ['E4',1],['G#4',1],['E4',2]
+              ]
+            }
+          ]
+        },
+
+        methods: {
+          title: '트럼펫 교본 (Public Domain Method Books)',
+          desc: '지적재산권이 만료된 아르방(Arban)과 클라크(Clarke)의 전설적인 연습곡으로 운지 테크닉을 다집니다.',
+          items: [
+            {
+              id: 'arban-first-studies',
+              title: 'Arban 교본 - 제1권 기초 연습 (No.1 & No.11)',
+              tag: 'Arban (1864)',
+              bpm: 92,
+              beatsPerMeasure: 4,
+              desc: '아르방 대교본 제1권의 정석! 정확한 박자 감각과 순차 진행·도약 운지 안정성을 기르는 기초 연구입니다.',
+              notes: [
+                ['C4',2],['D4',2],
+                ['E4',2],['F4',2],
+                ['G4',1],['F4',1],['E4',1],['D4',1],
+                ['C4',2],['G4',2],
+                ['E4',1],['G4',1],['C5',1],['G4',1],
+                ['A4',1],['G4',1],['F4',1],['E4',1],
+                ['D4',1],['F4',1],['E4',1],['D4',1],
+                ['C4',4]
+              ]
+            },
+            {
+              id: 'arban-syncopation',
+              title: 'Arban 교본 - 당김음 연습 (Syncopation)',
+              tag: 'Arban 리듬 핵심',
+              bpm: 84,
+              beatsPerMeasure: 4,
+              desc: '아르방 교본의 대표 리듬 훈련! 8분음표-4분음표-8분음표로 이어지는 당김음 박자와 운지 전환을 마스터합니다.',
+              notes: [
+                ['C4',0.5],['D4',1],['E4',0.5],['F4',0.5],['G4',1],['F4',0.5],
+                ['E4',0.5],['F4',1],['G4',0.5],['A4',1],['G4',1],
+                ['G4',0.5],['A4',1],['B4',0.5],['C5',0.5],['B4',1],['A4',0.5],
+                ['G4',0.5],['F4',1],['E4',0.5],['D4',1],['C4',1],
+                ['E4',0.5],['G4',1],['E4',0.5],['F4',0.5],['A4',1],['F4',0.5],
+                ['G4',0.5],['B4',1],['G4',0.5],['C5',2]
+              ]
+            },
+            {
+              id: 'clarke-study-1',
+              title: 'Clarke 교본 - 제1연구 (반음계 운지 민첩성)',
+              tag: 'Clarke (1912)',
+              bpm: 76,
+              beatsPerMeasure: 4,
+              desc: '허버트 클라크 테크니컬 스터디 제1연구! 8분음표 반음계 패턴으로 손가락 독립성과 속주를 집중 강화합니다.',
+              notes: [
+                ['C4',0.5],['C#4',0.5],['D4',0.5],['C#4',0.5],['C4',0.5],['C#4',0.5],['D4',0.5],['C#4',0.5],
+                ['D4',0.5],['Eb4',0.5],['E4',0.5],['Eb4',0.5],['D4',0.5],['Eb4',0.5],['E4',0.5],['Eb4',0.5],
+                ['E4',0.5],['F4',0.5],['F#4',0.5],['F4',0.5],['E4',0.5],['F4',0.5],['F#4',0.5],['F4',0.5],
+                ['G4',2],['R',2],
+                ['G4',0.5],['F#4',0.5],['F4',0.5],['F#4',0.5],['G4',0.5],['F#4',0.5],['F4',0.5],['E4',0.5],
+                ['Eb4',0.5],['D4',0.5],['C#4',0.5],['D4',0.5],['C4',2]
+              ]
+            },
+            {
+              id: 'clarke-study-2',
+              title: 'Clarke 교본 - 제2연구 (음계 순환 테크닉)',
+              tag: 'Clarke (1912)',
+              bpm: 80,
+              beatsPerMeasure: 4,
+              desc: '클라크 제2연구의 유려한 상·하행 8분음표 패턴으로 부드러운 밸브 연결과 고른 박자를 훈련합니다.',
+              notes: [
+                ['C4',0.5],['D4',0.5],['E4',0.5],['F4',0.5],['G4',0.5],['F4',0.5],['E4',0.5],['D4',0.5],
+                ['C4',0.5],['E4',0.5],['G4',0.5],['E4',0.5],['C4',2],
+                ['F4',0.5],['G4',0.5],['A4',0.5],['Bb4',0.5],['C5',0.5],['Bb4',0.5],['A4',0.5],['G4',0.5],
+                ['F4',0.5],['A4',0.5],['C5',0.5],['A4',0.5],['F4',2],
+                ['G4',0.5],['A4',0.5],['B4',0.5],['C5',0.5],['D5',0.5],['C5',0.5],['B4',0.5],['A4',0.5],
+                ['G4',1],['B4',1],['C5',2]
+              ]
+            }
+          ]
+        },
+
+        classics: {
+          title: '클래식 명곡 (Public Domain Repertoire)',
+          desc: 'IMSLP 퍼블릭 도메인 기반의 위대한 트럼펫 클래식 명곡들을 B♭ 트럼펫 표준 악보로 연주합니다.',
+          items: [
+            {
+              id: 'haydn-mov1',
+              title: '하이든 트럼펫 협주곡 1악장 (Allegro)',
+              tag: 'J. Haydn (1796)',
+              bpm: 96,
+              beatsPerMeasure: 4,
+              desc: '트럼펫 역사상 가장 위대한 협주곡! 원곡 E♭장조(B♭ 트럼펫 기보 F장조)의 장엄한 솔로 제1주제입니다.',
+              notes: [
+                ['F4',2],['A4',1],['C5',1],
+                ['F5',2],['E5',0.5],['D5',0.5],['C5',0.5],['Bb4',0.5],
+                ['A4',1],['G4',1],['F4',1],['E4',1],
+                ['F4',2],['R',2],
+                ['C5',1],['A4',1],['F4',1],['A4',1],
+                ['G4',1],['Bb4',1],['D5',1],['Bb4',1],
+                ['A4',1],['C5',1],['Bb4',1],['G4',1],
+                ['F4',3],['R',1]
+              ]
+            },
+            {
+              id: 'haydn-mov3',
+              title: '하이든 트럼펫 협주곡 3악장 (론도 Allegro)',
+              tag: 'J. Haydn (1796)',
+              bpm: 108,
+              beatsPerMeasure: 4,
+              desc: '경쾌하고 밝은 3악장 론도 주제! 스타카토 감각으로 빠르게 밸브를 전환하는 짜릿한 재미를 느껴보세요.',
+              notes: [
+                ['C5',0.5],['F5',0.5],['E5',0.5],['F5',0.5],['C5',1],['A4',1],
+                ['F4',0.5],['A4',0.5],['C5',0.5],['A4',0.5],['G4',2],
+                ['C5',0.5],['E5',0.5],['D5',0.5],['E5',0.5],['C5',1],['Bb4',1],
+                ['A4',0.5],['G4',0.5],['F4',0.5],['G4',0.5],['A4',2],
+                ['C5',0.5],['F5',0.5],['E5',0.5],['F5',0.5],['D5',1],['Bb4',1],
+                ['A4',1],['G4',1],['F4',2]
+              ]
+            },
+            {
+              id: 'hummel-mov1',
+              title: '훔멜 트럼펫 협주곡 1악장 (Allegro con spirito)',
+              tag: 'J. N. Hummel (1803)',
+              bpm: 100,
+              beatsPerMeasure: 4,
+              desc: '하이든과 쌍벽을 이루는 훔멜 협주곡의 화려한 오프닝 팡파르 주제(기보 F장조)입니다.',
+              notes: [
+                ['F4',1.5],['F4',0.5],['F4',1],['A4',1],
+                ['C5',2],['A4',1],['F4',1],
+                ['G4',1],['Bb4',1],['D5',1],['C5',1],
+                ['Bb4',1],['A4',1],['G4',2],
+                ['F4',1.5],['A4',0.5],['C5',1],['F5',1],
+                ['E5',1],['D5',1],['C5',1],['Bb4',1],
+                ['A4',1],['G4',1],['A4',1],['G4',1],
+                ['F4',3],['R',1]
+              ]
+            },
+            {
+              id: 'beethoven-ode',
+              title: '베토벤 교향곡 9번 - 환희의 송가',
+              tag: 'L. v. Beethoven (1824)',
+              bpm: 102,
+              beatsPerMeasure: 4,
+              desc: '초보자도 즐겁게 완주할 수 있는 C장조 명곡! 명확한 4박자 리듬으로 금관 앙상블의 감동을 느껴보세요.',
+              notes: [
+                ['E4',1],['E4',1],['F4',1],['G4',1],
+                ['G4',1],['F4',1],['E4',1],['D4',1],
+                ['C4',1],['C4',1],['D4',1],['E4',1],
+                ['E4',1.5],['D4',0.5],['D4',2],
+                ['E4',1],['E4',1],['F4',1],['G4',1],
+                ['G4',1],['F4',1],['E4',1],['D4',1],
+                ['C4',1],['C4',1],['D4',1],['E4',1],
+                ['D4',1.5],['C4',0.5],['C4',2]
+              ]
+            }
+          ]
+        }
+      };
+
+      /* =======================================================================
+         3. WEB AUDIO API BRASS TRUMPET SYNTHESIZER & METRONOME
+      ======================================================================== */
+      class BrassAudioEngine {
+        constructor() {
+          this.ctx = null;
+          this.masterGain = null;
+          this.pitchMode = 'Bb'; // 'Bb' (Concert = Written - 2) | 'C' (Concert = Written)
+          this.soundEnabled = true;
+        }
+
+        ensureContext() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            this.ctx = new AudioCtx();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = 0.85;
+            this.masterGain.connect(this.ctx.destination);
+          }
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+          return this.ctx;
+        }
+
+        midiToFreq(writtenMidi) {
+          const concertMidi = this.pitchMode === 'Bb' ? writtenMidi - 2 : writtenMidi;
+          return 440 * Math.pow(2, (concertMidi - 69) / 12);
+        }
+
+        /**
+         * Synthesizes a warm, expressive trumpet tone using layered sawtooth + triangle
+         * oscillators through a brass-envelope dynamic lowpass filter.
+         */
+        playTrumpetNote(writtenMidi, durationSec = 0.55, volume = 0.85) {
+          if (!this.soundEnabled || !writtenMidi) return;
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+
+          const now = ctx.currentTime;
+          const dur = Math.max(0.14, durationSec);
+          const freq = this.midiToFreq(writtenMidi);
+
+          // Voice graph: Oscillators -> Lowpass Filter -> Gain ADSR -> Master
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.Q.value = 2.1;
+
+          // Classic brass bloom envelope: dark attack -> bright brassy swell -> warm sustain
+          const peakCutoff = Math.min(3400, Math.max(1500, freq * 5.2));
+          const sustainCutoff = Math.min(2100, Math.max(950, freq * 3.1));
+          filter.frequency.setValueAtTime(380, now);
+          filter.frequency.exponentialRampToValueAtTime(peakCutoff, now + 0.055);
+          filter.frequency.exponentialRampToValueAtTime(sustainCutoff, now + Math.min(0.22, dur * 0.6));
+
+          const env = ctx.createGain();
+          const peakAmp = 0.28 * volume;
+          const sustainAmp = 0.21 * volume;
+          env.gain.setValueAtTime(0.0001, now);
+          env.gain.linearRampToValueAtTime(peakAmp, now + 0.025);
+          env.gain.linearRampToValueAtTime(sustainAmp, now + 0.09);
+          env.gain.setValueAtTime(sustainAmp, now + Math.max(0.1, dur - 0.05));
+          env.gain.exponentialRampToValueAtTime(0.0001, now + dur + 0.06);
+
+          // Oscillator 1: Primary Sawtooth (brass harmonics)
+          const osc1 = ctx.createOscillator();
+          osc1.type = 'sawtooth';
+          osc1.frequency.setValueAtTime(freq, now);
+
+          // Oscillator 2: Warm Triangle slightly detuned for richness
+          const osc2 = ctx.createOscillator();
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(freq, now);
+          osc2.detune.setValueAtTime(3.2, now);
+
+          // Oscillator 3: Subtle second sawtooth detuned downward
+          const osc3 = ctx.createOscillator();
+          osc3.type = 'sawtooth';
+          osc3.frequency.setValueAtTime(freq, now);
+          osc3.detune.setValueAtTime(-3.5, now);
+
+          const g1 = ctx.createGain(); g1.gain.value = 0.52;
+          const g2 = ctx.createGain(); g2.gain.value = 0.36;
+          const g3 = ctx.createGain(); g3.gain.value = 0.18;
+
+          // Gentle vibrato for longer sustained tones
+          if (dur > 0.42) {
+            const lfo = ctx.createOscillator();
+            const lfoGain = ctx.createGain();
+            lfo.frequency.value = 5.2;
+            lfoGain.gain.setValueAtTime(0, now);
+            lfoGain.gain.linearRampToValueAtTime(3.2, now + 0.25);
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc1.detune);
+            lfoGain.connect(osc2.detune);
+            lfo.start(now);
+            lfo.stop(now + dur + 0.08);
+          }
+
+          osc1.connect(g1); g1.connect(filter);
+          osc2.connect(g2); g2.connect(filter);
+          osc3.connect(g3); g3.connect(filter);
+          filter.connect(env);
+          env.connect(this.masterGain);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc3.start(now);
+
+          const stopAt = now + dur + 0.08;
+          osc1.stop(stopAt);
+          osc2.stop(stopAt);
+          osc3.stop(stopAt);
+        }
+
+        /**
+         * Crisp woodblock metronome click.
+         */
+        playMetronomeClick(isAccent = false) {
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'triangle';
+          const freq = isAccent ? 1220 : 840;
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.exponentialRampToValueAtTime(freq * 0.55, now + 0.035);
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(isAccent ? 0.32 : 0.2, now + 0.004);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.048);
+
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.055);
+        }
+
+        /**
+         * Subtle positive chime for Menu 1 correct feedback.
+         */
+        playSuccessDing() {
+          if (!this.soundEnabled) return;
+          const ctx = this.ensureContext();
+          if (!ctx) return;
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1046.5, now);
+          osc.frequency.setValueAtTime(1318.5, now + 0.065);
+          g.gain.setValueAtTime(0.001, now);
+          g.gain.linearRampToValueAtTime(0.08, now + 0.015);
+          g.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+          osc.connect(g);
+          g.connect(this.masterGain);
+          osc.start(now);
+          osc.stop(now + 0.24);
+        }
+      }
+
+      const audio = new BrassAudioEngine();
+
+      /* =======================================================================
+         4. SVG TREBLE CLEF SHEET MUSIC ENGINE
+      ======================================================================== */
+      const STAFF_TOP_Y = 54;   // Line 5 (F5, diatonicStep = 10)
+      const STEP_PX = 6;        // 12px between staff lines, 6px per diatonic step
+      const SVG_HEIGHT = 176;
+
+      function stepToY(diatonicStep) {
+        return STAFF_TOP_Y + (10 - diatonicStep) * STEP_PX;
+      }
+
+      function createSvgEl(tag, attrs = {}) {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          el.setAttribute(k, String(v));
+        }
+        return el;
+      }
+
+      /**
+       * Renders either a single note (Chart mode) or a full multi-measure piece (Menus 2,3,4).
+       * Returns note X coordinates so the scroll viewport can smoothly follow the active note.
+       */
+      function renderSheetSvg(svgEl, notes, activeIndex, options = {}) {
+        const { isSingleChart = false, beatsPerMeasure = 4 } = options;
+        svgEl.innerHTML = '';
+
+        const leftPadding = isSingleChart ? 115 : 88;
+        const notePositions = [];
+
+        let cursorX = leftPadding;
+        let beatAccum = 0;
+        const barlineXs = [];
+
+        if (isSingleChart) {
+          notePositions.push(210);
+          cursorX = 340;
+        } else {
+          for (let i = 0; i < notes.length; i++) {
+            const n = notes[i];
+            notePositions.push(cursorX);
+            const spacing = n.dur <= 0.5 ? 52 : (n.dur <= 1 ? 66 : (n.dur <= 2 ? 84 : 104));
+            cursorX += spacing;
+            beatAccum += n.dur;
+            if (beatAccum >= beatsPerMeasure - 0.001) {
+              if (i < notes.length - 1) {
+                barlineXs.push(cursorX - spacing * 0.36);
+              }
+              beatAccum = 0;
+            }
+          }
+          cursorX += 56;
+        }
+
+        const totalWidth = Math.max(isSingleChart ? 360 : 520, cursorX);
+        svgEl.setAttribute('viewBox', `0 0 ${totalWidth} ${SVG_HEIGHT}`);
+        svgEl.style.width = isSingleChart ? '100%' : `${totalWidth}px`;
+
+        // 1) Draw 5 crisp Treble Clef Staff Lines (E4=2, G4=4, B4=6, D5=8, F5=10)
+        const staffGroup = createSvgEl('g');
+        for (let lineStep = 2; lineStep <= 10; lineStep += 2) {
+          const y = stepToY(lineStep);
+          staffGroup.appendChild(createSvgEl('line', {
+            x1: 16, y1: y, x2: totalWidth - 16, y2: y,
+            stroke: '#44403C', 'stroke-width': '1.35'
+          }));
+        }
+        // Left starting barline
+        staffGroup.appendChild(createSvgEl('line', {
+          x1: 16, y1: stepToY(10), x2: 16, y2: stepToY(2),
+          stroke: '#1C1917', 'stroke-width': '2'
+        }));
+        svgEl.appendChild(staffGroup);
+
+        // 2) Draw Vector Treble Clef (consistent across all Android/iOS/Desktop browsers)
+        const clefG = createSvgEl('g', { transform: 'translate(22, 34) scale(0.92)' });
+        clefG.appendChild(createSvgEl('path', {
+          d: 'M20 79 C13 84 6 80 6 73 C6 67 11 63 16 65 C19 66 20 70 18 73 C16 75 13 75 12 73 C14 78 21 77 22 69 L24 14 C24 5 29 0 32 4 C35 9 32 22 23 33 C12 45 5 53 7 63 C9 72 20 75 28 70 C35 65 36 54 29 48 C23 43 15 47 15 54 C15 59 19 62 23 61 C19 61 18 57 20 53 C22 49 27 50 28 55 C29 61 24 67 17 66 C10 65 8 56 14 48 C21 39 30 30 31 17 C31 11 29 7 27 8 C25 9 25 14 25 20 L23 70 C23 75 21 78 20 79 Z',
+          fill: '#1C1917'
+        }));
+        svgEl.appendChild(clefG);
+
+        // Time signature in piece mode
+        if (!isSingleChart) {
+          const tsTop = createSvgEl('text', {
+            x: 61, y: stepToY(8) + 5,
+            fill: '#1C1917', 'font-size': '20', 'font-weight': '900',
+            'text-anchor': 'middle', 'font-family': 'Georgia, serif'
+          });
+          tsTop.textContent = String(beatsPerMeasure);
+          const tsBot = createSvgEl('text', {
+            x: 61, y: stepToY(4) + 7,
+            fill: '#1C1917', 'font-size': '20', 'font-weight': '900',
+            'text-anchor': 'middle', 'font-family': 'Georgia, serif'
+          });
+          tsBot.textContent = '4';
+          svgEl.appendChild(tsTop);
+          svgEl.appendChild(tsBot);
+        }
+
+        // 3) Measure Barlines & Double Final Barline
+        for (const bx of barlineXs) {
+          svgEl.appendChild(createSvgEl('line', {
+            x1: bx, y1: stepToY(10), x2: bx, y2: stepToY(2),
+            stroke: '#78716C', 'stroke-width': '1.3'
+          }));
+        }
+        // Final double barline
+        svgEl.appendChild(createSvgEl('line', {
+          x1: totalWidth - 22, y1: stepToY(10), x2: totalWidth - 22, y2: stepToY(2),
+          stroke: '#1C1917', 'stroke-width': '1.4'
+        }));
+        svgEl.appendChild(createSvgEl('line', {
+          x1: totalWidth - 16, y1: stepToY(10), x2: totalWidth - 16, y2: stepToY(2),
+          stroke: '#1C1917', 'stroke-width': '3.4'
+        }));
+
+        // 4) Active Note Glowing Playhead Highlight
+        if (activeIndex >= 0 && activeIndex < notePositions.length) {
+          const ax = notePositions[activeIndex];
+          svgEl.appendChild(createSvgEl('rect', {
+            x: ax - 24, y: 12, width: 48, height: SVG_HEIGHT - 22, rx: 12,
+            fill: 'rgba(245, 208, 97, 0.28)',
+            stroke: '#D4AF37', 'stroke-width': '1.8'
+          }));
+        }
+
+        // 5) Draw Every Note / Rest
+        for (let i = 0; i < notes.length; i++) {
+          const n = notes[i];
+          const nx = notePositions[i];
+          const isActive = i === activeIndex;
+
+          // Choose ink color based on judge status or active playhead
+          let inkColor = '#1C1917';
+          if (n.judgeState === 'perfect') inkColor = '#16A34A';
+          else if (n.judgeState === 'good') inkColor = '#0284C7';
+          else if (n.judgeState === 'miss') inkColor = '#DC2626';
+          else if (isActive) inkColor = '#B45309';
+
+          if (n.isRest) {
+            const restText = createSvgEl('text', {
+              x: nx, y: stepToY(6) + 9,
+              fill: '#78716C', 'font-size': '26', 'font-weight': '700',
+              'text-anchor': 'middle'
+            });
+            restText.textContent = n.dur >= 2 ? '𝄼' : (n.dur <= 0.5 ? '𝄾' : '𝄽');
+            svgEl.appendChild(restText);
+
+            const restLbl = createSvgEl('text', {
+              x: nx, y: 164, fill: '#A8A29E', 'font-size': '10.5', 'font-weight': '700',
+              'text-anchor': 'middle'
+            });
+            restLbl.textContent = '쉼표';
+            svgEl.appendChild(restLbl);
+            continue;
+          }
+
+          const ny = stepToY(n.diatonicStep);
+
+          // Ledger lines below staff (step <= 0: 0, -2, -4)
+          if (n.diatonicStep <= 0) {
+            for (let s = 0; s >= n.diatonicStep; s -= 2) {
+              const ly = stepToY(s);
+              svgEl.appendChild(createSvgEl('line', {
+                x1: nx - 14, y1: ly, x2: nx + 14, y2: ly,
+                stroke: '#44403C', 'stroke-width': '1.45'
+              }));
+            }
+          }
+          // Ledger lines above staff (step >= 12: 12, 14)
+          if (n.diatonicStep >= 12) {
+            for (let s = 12; s <= n.diatonicStep; s += 2) {
+              const ly = stepToY(s);
+              svgEl.appendChild(createSvgEl('line', {
+                x1: nx - 14, y1: ly, x2: nx + 14, y2: ly,
+                stroke: '#44403C', 'stroke-width': '1.45'
+              }));
+            }
+          }
+
+          // Accidental (♯ / ♭)
+          if (n.accSymbol) {
+            const accEl = createSvgEl('text', {
+              x: nx - 16, y: ny + 6,
+              fill: inkColor,
+              'font-size': '18',
+              'font-weight': '800',
+              'text-anchor': 'middle'
+            });
+            accEl.textContent = n.accSymbol;
+            svgEl.appendChild(accEl);
+          }
+
+          // Notehead (Hollow for whole/half, Filled for quarter/eighth)
+          const isHollow = n.dur >= 2;
+          const head = createSvgEl('ellipse', {
+            cx: nx, cy: ny, rx: 7.4, ry: 5.4,
+            transform: `rotate(-18 ${nx} ${ny})`,
+            fill: isHollow ? '#FFFDF7' : inkColor,
+            stroke: inkColor,
+            'stroke-width': isHollow ? '2.2' : '1.2'
+          });
+          svgEl.appendChild(head);
+
+          // Augmentation Dot (1.5 or 3 beats)
+          if (n.dur === 1.5 || n.dur === 3) {
+            const dotY = (n.diatonicStep % 2 === 0) ? ny - 3 : ny;
+            svgEl.appendChild(createSvgEl('circle', {
+              cx: nx + 12.5, cy: dotY, r: 2.3, fill: inkColor
+            }));
+          }
+
+          // Stem (for all notes except whole notes dur >= 4)
+          if (n.dur < 4) {
+            const stemDown = n.diatonicStep >= 6; // B4 and higher stem goes down
+            const sx = stemDown ? nx - 6.6 : nx + 6.6;
+            const sy1 = ny;
+            const sy2 = stemDown ? ny + 34 : ny - 34;
+
+            svgEl.appendChild(createSvgEl('line', {
+              x1: sx, y1: sy1, x2: sx, y2: sy2,
+              stroke: inkColor, 'stroke-width': '1.85', 'stroke-linecap': 'round'
+            }));
+
+            // Crisp curved flag for 8th notes (dur <= 0.5)
+            if (n.dur <= 0.5) {
+              const flagPath = stemDown
+                ? `M ${sx} ${sy2} Q ${sx + 9} ${sy2 - 5} ${sx + 10} ${sy2 - 15} Q ${sx + 6} ${sy2 - 9} ${sx} ${sy2 - 5}`
+                : `M ${sx} ${sy2} Q ${sx + 9} ${sy2 + 5} ${sx + 10} ${sy2 + 15} Q ${sx + 6} ${sy2 + 9} ${sx} ${sy2 + 5}`;
+              svgEl.appendChild(createSvgEl('path', {
+                d: flagPath, fill: inkColor
+              }));
+            }
+          }
+
+          // Korean Solfege + English Pitch Label below staff
+          const solf = createSvgEl('text', {
+            x: nx, y: 162,
+            fill: isActive ? '#B45309' : (n.judgeState ? inkColor : '#44403C'),
+            'font-size': isSingleChart ? '13.5' : '11',
+            'font-weight': isActive ? '900' : '700',
+            'text-anchor': 'middle'
+          });
+          solf.textContent = isSingleChart ? n.fullKoLabel : n.solfegeKo;
+          svgEl.appendChild(solf);
+        }
+
+        return { notePositions, totalWidth };
+      }
+
+      /* =======================================================================
+         5. APPLICATION STATE & DOM REFERENCES
+      ======================================================================== */
+      const state = {
+        screen: 'home',         // 'home' | 'submenu' | 'practice'
+        menuType: null,         // 'chart' | 'scales' | 'methods' | 'classics'
+        currentPiece: null,
+        notes: [],
+        activeIndex: 0,
+        notePositions: [],
+
+        // Settings
+        hideFingering: false,
+        metronomeOn: true,
+        soundOn: true,
+        waitMode: false,
+        bpm: 88,
+
+        // Chart Mode (Menu 1)
+        chartNoteIndex: 6,      // Starts on C4 (Middle C)
+        chartRandomMode: false,
+        chartAutoNext: true,
+        chartStreak: 0,
+        chartTotalTries: 0,
+        chartCorrectTries: 0,
+        chartEvalTimer: null,
+        chartNextTimer: null,
+
+        // Rhythm Game Engine (Menus 2, 3, 4)
+        isPlaying: false,
+        rafId: null,
+        countInTimerIds: [],
+        playbackStartTime: 0,
+        noteSchedule: [],       // [{ index, startSec, endSec, audioTriggered, judged }]
+        lastBeatPlayed: -1,
+        score: 0,
+        combo: 0,
+        maxCombo: 0,
+        perfectCount: 0,
+        goodCount: 0,
+        missCount: 0,
+        waitNoteMatchedHold: false,
+
+        // Multi-touch & Keyboard Valve Tracking
+        activePointers: new Map(), // pointerId -> valveNum (1|2|3)
+        activeKeys: new Set(),     // valveNum (1|2|3)
+        pressedValves: []          // sorted array e.g. [1, 2]
+      };
+
+      // DOM elements
+      const el = {
+        portraitBanner: document.getElementById('portraitBanner'),
+        btnTryLandscape: document.getElementById('btnTryLandscape'),
+        btnDismissBanner: document.getElementById('btnDismissBanner'),
+
+        homeScreen: document.getElementById('homeScreen'),
+        submenuScreen: document.getElementById('submenuScreen'),
+        practiceScreen: document.getElementById('practiceScreen'),
+
+        btnPitchModeHome: document.getElementById('btnPitchModeHome'),
+        btnFullscreenHome: document.getElementById('btnFullscreenHome'),
+
+        btnSubmenuBack: document.getElementById('btnSubmenuBack'),
+        submenuHeading: document.getElementById('submenuHeading'),
+        submenuDesc: document.getElementById('submenuDesc'),
+        pieceGrid: document.getElementById('pieceGrid'),
+
+        btnPracticeBack: document.getElementById('btnPracticeBack'),
+        practiceTitle: document.getElementById('practiceTitle'),
+        btnPlayPause: document.getElementById('btnPlayPause'),
+        btnWaitMode: document.getElementById('btnWaitMode'),
+        bpmWrap: document.getElementById('bpmWrap'),
+        btnBpmDown: document.getElementById('btnBpmDown'),
+        btnBpmUp: document.getElementById('btnBpmUp'),
+        bpmDisplay: document.getElementById('bpmDisplay'),
+        btnMetronome: document.getElementById('btnMetronome'),
+        btnSound: document.getElementById('btnSound'),
+        btnToggleFingering: document.getElementById('btnToggleFingering'),
+        btnPitchModePractice: document.getElementById('btnPitchModePractice'),
+
+        statScore: document.getElementById('statScore'),
+        statCombo: document.getElementById('statCombo'),
+        statAcc: document.getElementById('statAcc'),
+
+        leftStage: document.getElementById('leftStage'),
+        currentSolfegePill: document.getElementById('currentSolfegePill'),
+        currentPitchDesc: document.getElementById('currentPitchDesc'),
+        chartNavBar: document.getElementById('chartNavBar'),
+        btnChartPrev: document.getElementById('btnChartPrev'),
+        btnChartNext: document.getElementById('btnChartNext'),
+        btnChartPlayRef: document.getElementById('btnChartPlayRef'),
+        btnChartRandom: document.getElementById('btnChartRandom'),
+        btnChartAutoNext: document.getElementById('btnChartAutoNext'),
+        sheetViewport: document.getElementById('sheetViewport'),
+        sheetSvg: document.getElementById('sheetSvg'),
+        chartStripWrap: document.getElementById('chartStripWrap'),
+        judgeOverlay: document.getElementById('judgeOverlay'),
+        countInOverlay: document.getElementById('countInOverlay'),
+        countInNumber: document.getElementById('countInNumber'),
+        countInSub: document.getElementById('countInSub'),
+
+        targetFingeringText: document.getElementById('targetFingeringText'),
+        guideDots: [null, document.getElementById('guideDot1'), document.getElementById('guideDot2'), document.getElementById('guideDot3')],
+        nextNotePreview: document.getElementById('nextNotePreview'),
+        nextNoteLabel: document.getElementById('nextNoteLabel'),
+        nextDots: [null, document.getElementById('nextDot1'), document.getElementById('nextDot2'), document.getElementById('nextDot3')],
+
+        liveGripBadge: document.getElementById('liveGripBadge'),
+        valveBtns: [null, document.getElementById('valveBtn1'), document.getElementById('valveBtn2'), document.getElementById('valveBtn3')],
+        btnBlowConfirm: document.getElementById('btnBlowConfirm'),
+
+        resultModal: document.getElementById('resultModal'),
+        resultGrade: document.getElementById('resultGrade'),
+        resultModalTitle: document.getElementById('resultModalTitle'),
+        resultSubtitle: document.getElementById('resultSubtitle'),
+        resScore: document.getElementById('resScore'),
+        resAcc: document.getElementById('resAcc'),
+        resCombo: document.getElementById('resCombo'),
+        resBreakdown: document.getElementById('resBreakdown'),
+        btnResRetry: document.getElementById('btnResRetry'),
+        btnResList: document.getElementById('btnResList'),
+        btnResHome: document.getElementById('btnResHome'),
+
+        toastBox: document.getElementById('toastBox')
+      };
+
+      /* =======================================================================
+         6. UI HELPERS (TOAST, FEEDBACK BADGE, SCREEN NAVIGATION)
+      ======================================================================== */
+      let toastTimer = null;
+      function showToast(msg) {
+        el.toastBox.textContent = msg;
+        el.toastBox.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.toastBox.classList.remove('show'), 2200);
+      }
+
+      let judgeTimer = null;
+      function showJudgeBadge(text, type = 'perfect', holdMs = 1100) {
+        el.judgeOverlay.textContent = text;
+        el.judgeOverlay.className = `show ${type}`;
+        clearTimeout(judgeTimer);
+        judgeTimer = setTimeout(() => {
+          el.judgeOverlay.classList.remove('show');
+        }, holdMs);
+      }
+
+      function switchScreen(name) {
+        stopPlayback();
+        clearChartTimers();
+        el.resultModal.classList.remove('open');
+
+        state.screen = name;
+        el.homeScreen.classList.toggle('active', name === 'home');
+        el.submenuScreen.classList.toggle('active', name === 'submenu');
+        el.practiceScreen.classList.toggle('active', name === 'practice');
+      }
+
+      function togglePitchMode() {
+        audio.pitchMode = audio.pitchMode === 'Bb' ? 'C' : 'Bb';
+        const isBb = audio.pitchMode === 'Bb';
+        el.btnPitchModeHome.textContent = isBb ? '🎺 B♭ 트럼펫 실음 (표준)' : '🎹 C 기보음 (피아노 기준)';
+        el.btnPitchModeHome.classList.toggle('active', isBb);
+        el.btnPitchModePractice.textContent = isBb ? 'B♭ 실음' : 'C 기보음';
+        el.btnPitchModePractice.classList.toggle('toggle-on', isBb);
+        showToast(isBb ? 'B♭ 트럼펫 표준 실음(장2도 아래)으로 설정되었습니다.' : '악보 그대로의 C 기보음으로 설정되었습니다.');
+      }
+
+      async function requestLandscapeFullscreen() {
+        try {
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+          }
+          if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape');
+          }
+          showToast('가로 전체화면 모드가 적용되었습니다.');
+        } catch (err) {
+          showToast('기기를 직접 가로로 회전해 주세요.');
+        }
+      }
+
+      function updateFingeringVisibilityUI() {
+        el.leftStage.classList.toggle('fingering-hidden', state.hideFingering);
+        el.btnToggleFingering.classList.toggle('hidden-mode', state.hideFingering);
+        el.btnToggleFingering.textContent = state.hideFingering ? '🙈 운지 숨김 (고급)' : '👁 운지 표시 ON';
+        updateReadoutPanel();
+      }
+
+      function updateHudStats() {
+        if (state.menuType === 'chart') {
+          const acc = state.chartTotalTries === 0
+            ? 100
+            : Math.round((state.chartCorrectTries / state.chartTotalTries) * 100);
+          el.statScore.textContent = `${state.chartCorrectTries}개`;
+          el.statCombo.textContent = `${state.chartStreak}`;
+          el.statAcc.textContent = `${acc}%`;
+        } else {
+          const judged = state.perfectCount + state.goodCount + state.missCount;
+          const acc = judged === 0
+            ? 100
+            : Math.round(((state.perfectCount + state.goodCount * 0.75) / judged) * 100);
+          el.statScore.textContent = String(state.score);
+          el.statCombo.textContent = String(state.combo);
+          el.statAcc.textContent = `${acc}%`;
+        }
+      }
+
+      /* =======================================================================
+         7. READOUT & SHEET RENDERING
+      ======================================================================== */
+      function updateReadoutPanel() {
+        const note = state.notes[state.activeIndex];
+        if (!note) return;
+
+        if (note.isRest) {
+          el.currentSolfegePill.textContent = '쉼표';
+          el.currentPitchDesc.textContent = '잠시 호흡을 가다듬으세요';
+          el.targetFingeringText.textContent = '쉬기';
+          for (let v = 1; v <= 3; v++) el.guideDots[v].classList.remove('pressed');
+        } else {
+          el.currentSolfegePill.textContent = note.fullKoLabel;
+          el.currentPitchDesc.textContent = state.hideFingering
+            ? '고급 모드 (운지 숨김)'
+            : `표준 운지: ${formatValves(note.valves)}`;
+          el.targetFingeringText.textContent = formatValves(note.valves);
+          for (let v = 1; v <= 3; v++) {
+            el.guideDots[v].classList.toggle('pressed', note.valves.includes(v));
+          }
+        }
+
+        // Next Note Preview (hidden in Chart mode)
+        if (state.menuType === 'chart') {
+          el.nextNotePreview.style.display = 'none';
+        } else {
+          const nextNote = state.notes[state.activeIndex + 1];
+          if (nextNote && !nextNote.isRest) {
+            el.nextNotePreview.style.display = '';
+            el.nextNoteLabel.textContent = nextNote.fullKoLabel;
+            for (let v = 1; v <= 3; v++) {
+              el.nextDots[v].classList.toggle('pressed', nextNote.valves.includes(v));
+            }
+          } else if (nextNote && nextNote.isRest) {
+            el.nextNotePreview.style.display = '';
+            el.nextNoteLabel.textContent = '쉼표';
+            for (let v = 1; v <= 3; v++) el.nextDots[v].classList.remove('pressed');
+          } else {
+            el.nextNotePreview.style.display = '';
+            el.nextNoteLabel.textContent = '곡 끝';
+            for (let v = 1; v <= 3; v++) el.nextDots[v].classList.remove('pressed');
+          }
+        }
+      }
+
+      function redrawSheet(scrollToActive = true) {
+        const isChart = state.menuType === 'chart';
+        const bpmMeasures = state.currentPiece ? (state.currentPiece.beatsPerMeasure || 4) : 4;
+        const { notePositions } = renderSheetSvg(el.sheetSvg, state.notes, state.activeIndex, {
+          isSingleChart: isChart,
+          beatsPerMeasure: bpmMeasures
+        });
+        state.notePositions = notePositions;
+
+        if (!isChart && scrollToActive && notePositions[state.activeIndex] !== undefined) {
+          const viewportW = el.sheetViewport.clientWidth;
+          const targetX = notePositions[state.activeIndex] - viewportW * 0.3;
+          el.sheetViewport.scrollTo({
+            left: Math.max(0, targetX),
+            behavior: state.isPlaying ? 'smooth' : 'auto'
+          });
+        }
+        updateReadoutPanel();
+      }
+
+      /* =======================================================================
+         8. MENU 1: INTERACTIVE FINGERING CHART & QUIZ (F#3 ~ C6)
+      ======================================================================== */
+      function buildChartNoteStrip() {
+        el.chartStripWrap.innerHTML = '';
+        CHROMATIC_CHART_NOTES.forEach((token, idx) => {
+          const info = parsePitch(token);
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'note-chip' + (idx === state.chartNoteIndex ? ' active' : '');
+          btn.textContent = `${info.solfegeKo} ${info.displayName}`;
+          btn.addEventListener('click', () => {
+            audio.ensureContext();
+            selectChartNote(idx);
+          });
+          el.chartStripWrap.appendChild(btn);
+        });
+      }
+
+      function selectChartNote(index) {
+        clearChartTimers();
+        state.chartNoteIndex = (index + CHROMATIC_CHART_NOTES.length) % CHROMATIC_CHART_NOTES.length;
+        const token = CHROMATIC_CHART_NOTES[state.chartNoteIndex];
+        state.notes = buildNotes([[token, 2]]);
+        state.activeIndex = 0;
+
+        // Highlight active chip in bottom strip
+        const chips = el.chartStripWrap.querySelectorAll('.note-chip');
+        chips.forEach((c, i) => {
+          c.classList.toggle('active', i === state.chartNoteIndex);
+          if (i === state.chartNoteIndex) {
+            c.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+          }
+        });
+
+        redrawSheet(false);
+      }
+
+      function clearChartTimers() {
+        clearTimeout(state.chartEvalTimer);
+        clearTimeout(state.chartNextTimer);
+        state.chartEvalTimer = null;
+        state.chartNextTimer = null;
+      }
+
+      function openChartMode() {
+        state.menuType = 'chart';
+        state.currentPiece = null;
+        state.chartStreak = 0;
+        state.chartTotalTries = 0;
+        state.chartCorrectTries = 0;
+
+        el.practiceTitle.textContent = '운지표 연습 (F♯3 ~ C6)';
+        el.btnPracticeBack.textContent = '← 홈으로';
+
+        // Hide rhythm-only buttons, show chart nav bar
+        el.btnPlayPause.style.display = 'none';
+        el.btnWaitMode.style.display = 'none';
+        el.bpmWrap.style.display = 'none';
+        el.btnMetronome.style.display = 'none';
+        el.chartNavBar.classList.add('visible');
+        el.chartStripWrap.classList.add('visible');
+
+        switchScreen('practice');
+        buildChartNoteStrip();
+        selectChartNote(6); // C4
+        updateHudStats();
+        updateFingeringVisibilityUI();
+      }
+
+      /**
+       * Evaluates the user's pressed valve grip in Menu 1 (Fingering Chart).
+       * - If correct: green badge + plays target note + optional auto-advance.
+       * - If wrong: red badge + explains pressed fingering + plays the actual note of that wrong fingering!
+       */
+      function evaluateChartAttempt(pressedValves) {
+        clearChartTimers();
+        const target = state.notes[0];
+        if (!target || target.isRest) return;
+
+        state.chartTotalTries++;
+        const isCorrect = valvesEqual(pressedValves, target.valves);
+
+        if (isCorrect) {
+          state.chartCorrectTries++;
+          state.chartStreak++;
+          target.judgeState = 'perfect';
+          redrawSheet(false);
+          updateHudStats();
+
+          audio.playTrumpetNote(target.midi, 0.72, 0.9);
+          audio.playSuccessDing();
+          showJudgeBadge(`✓ 정답! ${target.fullKoLabel} [${formatValves(target.valves)}]`, 'perfect', 1100);
+
+          if (state.chartAutoNext) {
+            state.chartNextTimer = setTimeout(() => {
+              if (state.screen !== 'practice' || state.menuType !== 'chart') return;
+              if (state.chartRandomMode) {
+                let nextIdx = Math.floor(Math.random() * CHROMATIC_CHART_NOTES.length);
+                if (nextIdx === state.chartNoteIndex) nextIdx = (nextIdx + 1) % CHROMATIC_CHART_NOTES.length;
+                selectChartNote(nextIdx);
+              } else {
+                selectChartNote(state.chartNoteIndex + 1);
+              }
+            }, 950);
+          }
+        } else {
+          state.chartStreak = 0;
+          target.judgeState = 'miss';
+          redrawSheet(false);
+          updateHudStats();
+
+          // Find & play a real trumpet note belonging to the wrong fingering!
+          const wrongNote = findClosestNoteForValves(pressedValves, target.midi);
+          if (wrongNote) {
+            audio.playTrumpetNote(wrongNote.midi, 0.65, 0.85);
+            showJudgeBadge(
+              `✕ 오답! 누른 운지 [${formatValves(pressedValves)}] → ${wrongNote.fullKoLabel} 음`,
+              'wrong',
+              1750
+            );
+          } else {
+            showJudgeBadge(`✕ 오답! 누른 운지 [${formatValves(pressedValves)}]`, 'wrong', 1400);
+          }
+        }
+      }
+
+      /* =======================================================================
+         9. SUBMENU & PIECE LOADER (MENUS 2, 3, 4)
+      ======================================================================== */
+      function openSubmenu(menuKey) {
+        const category = LIBRARY[menuKey];
+        if (!category) return;
+
+        state.menuType = menuKey;
+        el.submenuHeading.textContent = category.title;
+        el.submenuDesc.textContent = category.desc;
+        el.pieceGrid.innerHTML = '';
+
+        category.items.forEach((item, idx) => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'piece-card';
+          card.innerHTML = `
+            <div>
+              <div class="piece-top">
+                <span class="piece-index">${idx + 1}</span>
+                <span class="piece-tag">${item.tag}</span>
+              </div>
+              <h3>${item.title}</h3>
+              <p>${item.desc}</p>
+            </div>
+            <div class="piece-meta">
+              <span>♩ = ${item.bpm} BPM · ${item.beatsPerMeasure}/4박자</span>
+              <span>연습 시작 →</span>
+            </div>
+          `;
+          card.addEventListener('click', () => {
+            audio.ensureContext();
+            openPiecePractice(item);
+          });
+          el.pieceGrid.appendChild(card);
+        });
+
+        switchScreen('submenu');
+      }
+
+      function openPiecePractice(piece) {
+        state.currentPiece = piece;
+        state.bpm = piece.bpm;
+        state.notes = buildNotes(piece.notes);
+        state.activeIndex = 0;
+        resetGameScores();
+
+        el.practiceTitle.textContent = piece.title;
+        el.btnPracticeBack.textContent = '← 곡 목록';
+        el.bpmDisplay.textContent = `${state.bpm} BPM`;
+
+        // Show rhythm controls, hide chart nav bar
+        el.btnPlayPause.style.display = '';
+        el.btnWaitMode.style.display = '';
+        el.bpmWrap.style.display = '';
+        el.btnMetronome.style.display = '';
+        el.chartNavBar.classList.remove('visible');
+        el.chartStripWrap.classList.remove('visible');
+
+        switchScreen('practice');
+        updateWaitModeUI();
+        updateFingeringVisibilityUI();
+        updateHudStats();
+        redrawSheet(true);
+      }
+
+      function resetGameScores() {
+        state.score = 0;
+        state.combo = 0;
+        state.maxCombo = 0;
+        state.perfectCount = 0;
+        state.goodCount = 0;
+        state.missCount = 0;
+        state.waitNoteMatchedHold = false;
+        state.notes.forEach(n => { n.judgeState = null; });
+        updateHudStats();
+      }
+
+      function updateWaitModeUI() {
+        el.btnWaitMode.classList.toggle('toggle-on', state.waitMode);
+        el.btnWaitMode.textContent = state.waitMode ? '🐢 대기모드 ON' : '🐢 대기모드 OFF';
+        el.btnPlayPause.textContent = state.waitMode
+          ? '↺ 처음부터'
+          : (state.isPlaying ? '⏹ 정지' : '▶ 시작');
+        el.btnPlayPause.classList.toggle('playing', state.isPlaying && !state.waitMode);
+      }
+
+      /* =======================================================================
+         10. RHYTHM GAME ENGINE (4-BEAT COUNT-IN, SYNC PLAYHEAD, REAL-TIME JUDGE)
+      ======================================================================== */
+      function stopPlayback() {
+        state.isPlaying = false;
+        if (state.rafId) {
+          cancelAnimationFrame(state.rafId);
+          state.rafId = null;
+        }
+        state.countInTimerIds.forEach(id => clearTimeout(id));
+        state.countInTimerIds = [];
+        el.countInOverlay.classList.remove('show');
+        updateWaitModeUI();
+      }
+
+      function startRhythmGame() {
+        if (!state.currentPiece) return;
+        audio.ensureContext();
+        stopPlayback();
+
+        state.notes = buildNotes(state.currentPiece.notes);
+        state.activeIndex = 0;
+        resetGameScores();
+        redrawSheet(true);
+
+        if (state.waitMode) {
+          // Wait Mode: no timer, user advances note by note by pressing correct fingering
+          skipTrailingRestsInWaitMode();
+          showToast('대기 모드: 악보의 운지를 정확히 누르면 다음 음으로 넘어갑니다!');
+          return;
+        }
+
+        // Build precise beat schedule
+        const secPerBeat = 60 / state.bpm;
+        let t = 0;
+        state.noteSchedule = state.notes.map((n, idx) => {
+          const startSec = t;
+          const durSec = n.dur * secPerBeat;
+          t += durSec;
+          return {
+            index: idx,
+            startSec,
+            endSec: t,
+            audioTriggered: false,
+            judged: false
+          };
+        });
+        state.lastBeatPlayed = -1;
+        state.isPlaying = true;
+        updateWaitModeUI();
+
+        // 4-Beat Count-In
+        const countBeats = state.currentPiece.beatsPerMeasure || 4;
+        el.countInOverlay.classList.add('show');
+
+        for (let b = 0; b < countBeats; b++) {
+          const tid = setTimeout(() => {
+            if (!state.isPlaying) return;
+            el.countInNumber.textContent = String(countBeats - b);
+            el.countInNumber.style.animation = 'none';
+            void el.countInNumber.offsetWidth; // trigger reflow
+            el.countInNumber.style.animation = 'popBeat 0.35s ease';
+            audio.playMetronomeClick(b === 0);
+          }, b * secPerBeat * 1000);
+          state.countInTimerIds.push(tid);
+        }
+
+        // Launch synchronized playback right after count-in
+        const launchTid = setTimeout(() => {
+          if (!state.isPlaying) return;
+          el.countInOverlay.classList.remove('show');
+          state.playbackStartTime = performance.now() / 1000;
+          state.rafId = requestAnimationFrame(rhythmGameLoop);
+        }, countBeats * secPerBeat * 1000);
+        state.countInTimerIds.push(launchTid);
+      }
+
+      function rhythmGameLoop() {
+        if (!state.isPlaying) return;
+        const elapsed = performance.now() / 1000 - state.playbackStartTime;
+        const secPerBeat = 60 / state.bpm;
+        const beatsPerMeasure = state.currentPiece.beatsPerMeasure || 4;
+
+        // 1) Metronome click on each beat
+        const currentBeat = Math.floor(elapsed / secPerBeat);
+        if (currentBeat > state.lastBeatPlayed && currentBeat >= 0) {
+          state.lastBeatPlayed = currentBeat;
+          if (state.metronomeOn) {
+            audio.playMetronomeClick(currentBeat % beatsPerMeasure === 0);
+          }
+        }
+
+        // 2) Evaluate & trigger notes along timeline
+        let currentActiveIdx = state.activeIndex;
+        let allFinished = true;
+
+        for (const item of state.noteSchedule) {
+          const note = state.notes[item.index];
+
+          // Trigger Web Audio trumpet synthesis at exact note start
+          if (!item.audioTriggered && elapsed >= item.startSec) {
+            item.audioTriggered = true;
+            currentActiveIdx = item.index;
+            if (!note.isRest) {
+              const durSec = Math.max(0.16, (item.endSec - item.startSec) * 0.9);
+              audio.playTrumpetNote(note.midi, durSec, 0.85);
+            }
+          }
+
+          // Real-time valve matching window (with generous human reaction grace)
+          if (!note.isRest && !item.judged) {
+            const earlyWindow = item.startSec - 0.12;
+            const perfectWindow = item.startSec + Math.max(0.28, (item.endSec - item.startSec) * 0.55);
+
+            if (elapsed >= earlyWindow && elapsed <= item.endSec) {
+              if (valvesEqual(state.pressedValves, note.valves)) {
+                item.judged = true;
+                const isPerfect = elapsed <= perfectWindow;
+                recordRhythmJudge(note, isPerfect ? 'perfect' : 'good');
+              }
+            } else if (elapsed > item.endSec) {
+              // Missed this note
+              item.judged = true;
+              recordRhythmJudge(note, 'miss');
+            }
+          }
+
+          if (elapsed < item.endSec + 0.15) {
+            allFinished = false;
+          }
+        }
+
+        // Redraw sheet when moving to a new note
+        if (currentActiveIdx !== state.activeIndex) {
+          state.activeIndex = currentActiveIdx;
+          redrawSheet(true);
+        }
+
+        if (allFinished) {
+          finishPieceSummary();
+          return;
+        }
+
+        state.rafId = requestAnimationFrame(rhythmGameLoop);
+      }
+
+      function recordRhythmJudge(note, result) {
+        note.judgeState = result;
+        if (result === 'perfect') {
+          state.perfectCount++;
+          state.combo++;
+          state.maxCombo = Math.max(state.maxCombo, state.combo);
+          state.score += 100 + Math.min(state.combo, 20) * 10;
+          showJudgeBadge(`PERFECT! +${100 + Math.min(state.combo, 20) * 10}`, 'perfect', 550);
+        } else if (result === 'good') {
+          state.goodCount++;
+          state.combo++;
+          state.maxCombo = Math.max(state.maxCombo, state.combo);
+          state.score += 60;
+          showJudgeBadge('GOOD! +60', 'good', 550);
+        } else {
+          state.missCount++;
+          state.combo = 0;
+          showJudgeBadge(`MISS (목표: ${formatValves(note.valves)})`, 'wrong', 650);
+        }
+        updateHudStats();
+        redrawSheet(false);
+      }
+
+      function finishPieceSummary() {
+        stopPlayback();
+        const total = state.perfectCount + state.goodCount + state.missCount;
+        const acc = total === 0
+          ? 100
+          : Math.round(((state.perfectCount + state.goodCount * 0.75) / total) * 100);
+
+        let grade = 'C';
+        let subtitle = '조금만 더 느린 BPM으로 운지를 익혀보세요!';
+        if (acc >= 94) {
+          grade = 'S';
+          subtitle = '완벽한 마에스트로급 트럼펫 연주입니다! 🏆';
+        } else if (acc >= 82) {
+          grade = 'A';
+          subtitle = '훌륭한 박자와 정확한 운지 실력입니다! 🎺';
+        } else if (acc >= 68) {
+          grade = 'B';
+          subtitle = '아주 좋아요! 한 번 더 도전하면 A등급에 도달합니다.';
+        }
+
+        el.resultGrade.textContent = grade;
+        el.resultModalTitle.textContent = `${state.currentPiece ? state.currentPiece.title : '연주'} 완료!`;
+        el.resultSubtitle.textContent = subtitle;
+        el.resScore.textContent = String(state.score);
+        el.resAcc.textContent = `${acc}%`;
+        el.resCombo.textContent = String(state.maxCombo);
+        el.resBreakdown.textContent = `PERFECT ${state.perfectCount} · GOOD ${state.goodCount} · MISS ${state.missCount}`;
+        el.resultModal.classList.add('open');
+      }
+
+      /* =======================================================================
+         11. WAIT MODE (맞춰야 넘어감 — BEGINNER STEP-BY-STEP PRACTICE)
+      ======================================================================== */
+      function skipTrailingRestsInWaitMode() {
+        while (state.activeIndex < state.notes.length && state.notes[state.activeIndex].isRest) {
+          state.activeIndex++;
+        }
+        if (state.activeIndex >= state.notes.length) {
+          finishPieceSummary();
+        } else {
+          redrawSheet(true);
+        }
+      }
+
+      function checkWaitModeInput(explicitBlow = false) {
+        if (state.screen !== 'practice' || state.menuType === 'chart' || !state.waitMode) return;
+        const note = state.notes[state.activeIndex];
+        if (!note || note.isRest) return;
+
+        const isMatch = valvesEqual(state.pressedValves, note.valves);
+
+        // For Open (0) notes in Wait mode, trigger when user taps Blow button (or releases valves if previous wasn't open)
+        if (note.valves.length === 0) {
+          if (!explicitBlow && state.waitNoteMatchedHold) return;
+          if (!explicitBlow) return; // Require explicit "불기 / 개방(0)" tap so open notes don't auto-skip!
+        }
+
+        if (isMatch) {
+          audio.playTrumpetNote(note.midi, 0.45, 0.9);
+          recordRhythmJudge(note, 'perfect');
+          state.activeIndex++;
+          state.waitNoteMatchedHold = true;
+          skipTrailingRestsInWaitMode();
+        } else if (explicitBlow) {
+          const wrongNote = findClosestNoteForValves(state.pressedValves, note.midi);
+          if (wrongNote) audio.playTrumpetNote(wrongNote.midi, 0.4, 0.75);
+          showJudgeBadge(`목표 운지: [${formatValves(note.valves)}]`, 'wrong', 900);
+        }
+      }
+
+      /* =======================================================================
+         12. MULTI-TOUCH POINTER & KEYBOARD VALVE CONTROLLER
+      ======================================================================== */
+      function recomputePressedValves(triggeredByChange = false) {
+        const union = new Set();
+        for (const v of state.activePointers.values()) union.add(v);
+        for (const v of state.activeKeys.values()) union.add(v);
+
+        const sorted = Array.from(union).sort((a, b) => a - b);
+        const changed = !valvesEqual(sorted, state.pressedValves);
+        state.pressedValves = sorted;
+
+        // Update 3D depressed visual state on valve buttons
+        for (let v = 1; v <= 3; v++) {
+          el.valveBtns[v].classList.toggle('pressed', union.has(v));
+        }
+        el.liveGripBadge.textContent = `현재: ${formatValves(sorted)}`;
+
+        if (!changed || !triggeredByChange) return;
+
+        // Allow Wait mode consecutive matching once fingers lift/change
+        if (sorted.length === 0) {
+          state.waitNoteMatchedHold = false;
+        }
+
+        // Handle Menu 1 (Fingering Chart) smart multi-touch auto-evaluation
+        if (state.screen === 'practice' && state.menuType === 'chart') {
+          clearTimeout(state.chartEvalTimer);
+          if (sorted.length > 0) {
+            const target = state.notes[0];
+            // If exact match with target non-open note, confirm snappily (80ms)
+            // Otherwise allow 330ms settle window for multi-finger grips (1+2+3) before marking wrong
+            const isExactTarget = target && target.valves.length > 0 && valvesEqual(sorted, target.valves);
+            const delay = isExactTarget ? 80 : 330;
+            state.chartEvalTimer = setTimeout(() => {
+              if (state.pressedValves.length > 0 && state.menuType === 'chart') {
+                evaluateChartAttempt([...state.pressedValves]);
+              }
+            }, delay);
+          }
+        }
+
+        // Handle Wait Mode instant check when pressing non-open valves
+        if (state.screen === 'practice' && state.menuType !== 'chart' && state.waitMode && sorted.length > 0) {
+          const target = state.notes[state.activeIndex];
+          if (target && !target.isRest && valvesEqual(sorted, target.valves)) {
+            checkWaitModeInput(false);
+          }
+        }
+      }
+
+      // Bind true multi-touch Pointer Events to Valves 1, 2, 3
+      for (let v = 1; v <= 3; v++) {
+        const btn = el.valveBtns[v];
+
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          audio.ensureContext();
+          try { btn.setPointerCapture(e.pointerId); } catch (_) {}
+          state.activePointers.set(e.pointerId, v);
+          recomputePressedValves(true);
+        });
+
+        const releasePointer = (e) => {
+          if (state.activePointers.has(e.pointerId)) {
+            state.activePointers.delete(e.pointerId);
+            recomputePressedValves(true);
+          }
+        };
+
+        btn.addEventListener('pointerup', releasePointer);
+        btn.addEventListener('pointercancel', releasePointer);
+        btn.addEventListener('lostpointercapture', releasePointer);
+      }
+
+      // Blow / Open (0) Confirm Button
+      function handleBlowAction() {
+        audio.ensureContext();
+        el.btnBlowConfirm.classList.add('active');
+        setTimeout(() => el.btnBlowConfirm.classList.remove('active'), 140);
+
+        if (state.screen !== 'practice') return;
+
+        if (state.menuType === 'chart') {
+          evaluateChartAttempt([...state.pressedValves]);
+        } else if (state.waitMode) {
+          checkWaitModeInput(true);
+        } else if (!state.isPlaying) {
+          // Audition current grip sound when paused
+          const target = state.notes[state.activeIndex];
+          const refMidi = target && !target.isRest ? target.midi : 67;
+          const note = findClosestNoteForValves(state.pressedValves, refMidi);
+          if (note) {
+            audio.playTrumpetNote(note.midi, 0.55, 0.85);
+            showJudgeBadge(`💨 [${formatValves(state.pressedValves)}] → ${note.fullKoLabel}`, 'good', 850);
+          }
+        }
+      }
+
+      el.btnBlowConfirm.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        handleBlowAction();
+      });
+
+      // Desktop Keyboard Support (1/J = Valve 1, 2/K = Valve 2, 3/L = Valve 3, Space = Blow)
+      const KEY_TO_VALVE = {
+        '1': 1, 'j': 1, 'J': 1,
+        '2': 2, 'k': 2, 'K': 2,
+        '3': 3, 'l': 3, 'L': 3
+      };
+
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+        const valve = KEY_TO_VALVE[e.key];
+        if (valve) {
+          audio.ensureContext();
+          state.activeKeys.add(valve);
+          recomputePressedValves(true);
+          return;
+        }
+        if (e.code === 'Space' && state.screen === 'practice') {
+          e.preventDefault();
+          handleBlowAction();
+          return;
+        }
+        if (state.screen === 'practice' && state.menuType === 'chart') {
+          if (e.key === 'ArrowRight') selectChartNote(state.chartNoteIndex + 1);
+          if (e.key === 'ArrowLeft') selectChartNote(state.chartNoteIndex - 1);
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        const valve = KEY_TO_VALVE[e.key];
+        if (valve && state.activeKeys.has(valve)) {
+          state.activeKeys.delete(valve);
+          recomputePressedValves(true);
+        }
+      });
+
+      // Safety release if tab loses focus
+      window.addEventListener('blur', () => {
+        state.activePointers.clear();
+        state.activeKeys.clear();
+        recomputePressedValves(false);
+      });
+
+      /* =======================================================================
+         13. EVENT WIRING (BUTTONS & CONTROLS)
+      ======================================================================== */
+      // Portrait banner actions
+      el.btnTryLandscape.addEventListener('click', requestLandscapeFullscreen);
+      el.btnDismissBanner.addEventListener('click', () => {
+        el.portraitBanner.classList.add('dismissed');
+      });
+
+      // Home menu cards
+      document.querySelectorAll('.menu-card').forEach(card => {
+        card.addEventListener('click', () => {
+          audio.ensureContext();
+          const menu = card.dataset.menu;
+          if (menu === 'chart') openChartMode();
+          else openSubmenu(menu);
+        });
+      });
+
+      el.btnPitchModeHome.addEventListener('click', togglePitchMode);
+      el.btnPitchModePractice.addEventListener('click', togglePitchMode);
+      el.btnFullscreenHome.addEventListener('click', requestLandscapeFullscreen);
+
+      // Submenu back
+      el.btnSubmenuBack.addEventListener('click', () => switchScreen('home'));
+
+      // Practice top bar controls
+      el.btnPracticeBack.addEventListener('click', () => {
+        if (state.menuType === 'chart') switchScreen('home');
+        else openSubmenu(state.menuType);
+      });
+
+      el.btnPlayPause.addEventListener('click', () => {
+        if (state.waitMode) {
+          startRhythmGame();
+        } else if (state.isPlaying) {
+          stopPlayback();
+        } else {
+          startRhythmGame();
+        }
+      });
+
+      el.btnWaitMode.addEventListener('click', () => {
+        stopPlayback();
+        state.waitMode = !state.waitMode;
+        updateWaitModeUI();
+        if (state.waitMode) {
+          startRhythmGame();
+        } else {
+          showToast('리듬 게임 모드: ▶ 시작 버튼을 눌러 박자에 맞춰 연주하세요!');
+        }
+      });
+
+      el.btnBpmDown.addEventListener('click', () => {
+        state.bpm = Math.max(40, state.bpm - 4);
+        el.bpmDisplay.textContent = `${state.bpm} BPM`;
+        if (state.isPlaying) startRhythmGame();
+      });
+
+      el.btnBpmUp.addEventListener('click', () => {
+        state.bpm = Math.min(160, state.bpm + 4);
+        el.bpmDisplay.textContent = `${state.bpm} BPM`;
+        if (state.isPlaying) startRhythmGame();
+      });
+
+      el.btnMetronome.addEventListener('click', () => {
+        state.metronomeOn = !state.metronomeOn;
+        el.btnMetronome.classList.toggle('toggle-on', state.metronomeOn);
+        el.btnMetronome.textContent = state.metronomeOn ? '⏱ 메트로놈' : '⏱ 무음박';
+      });
+
+      el.btnSound.addEventListener('click', () => {
+        state.soundOn = !state.soundOn;
+        audio.soundEnabled = state.soundOn;
+        el.btnSound.classList.toggle('toggle-on', state.soundOn);
+        el.btnSound.textContent = state.soundOn ? '🔊 소리' : '🔇 음소거';
+      });
+
+      el.btnToggleFingering.addEventListener('click', () => {
+        state.hideFingering = !state.hideFingering;
+        updateFingeringVisibilityUI();
+      });
+
+      // Menu 1: Chart Nav Bar controls
+      el.btnChartPrev.addEventListener('click', () => {
+        audio.ensureContext();
+        selectChartNote(state.chartNoteIndex - 1);
+      });
+      el.btnChartNext.addEventListener('click', () => {
+        audio.ensureContext();
+        selectChartNote(state.chartNoteIndex + 1);
+      });
+      el.btnChartPlayRef.addEventListener('click', () => {
+        audio.ensureContext();
+        const note = state.notes[0];
+        if (note && !note.isRest) {
+          audio.playTrumpetNote(note.midi, 0.85, 0.9);
+        }
+      });
+      el.btnChartRandom.addEventListener('click', () => {
+        audio.ensureContext();
+        state.chartRandomMode = !state.chartRandomMode;
+        el.btnChartRandom.classList.toggle('active', state.chartRandomMode);
+        if (state.chartRandomMode) {
+          const randIdx = Math.floor(Math.random() * CHROMATIC_CHART_NOTES.length);
+          selectChartNote(randIdx);
+          showToast('🎲 랜덤 퀴즈 모드 활성화! 숨김 버튼을 누르면 실전 테스트가 됩니다.');
+        } else {
+          showToast('순차 운지표 모드로 돌아왔습니다.');
+        }
+      });
+      el.btnChartAutoNext.addEventListener('click', () => {
+        state.chartAutoNext = !state.chartAutoNext;
+        el.btnChartAutoNext.classList.toggle('active', state.chartAutoNext);
+        el.btnChartAutoNext.textContent = state.chartAutoNext ? '자동진행 ON' : '자동진행 OFF';
+      });
+
+      // Result modal buttons
+      el.btnResRetry.addEventListener('click', () => {
+        el.resultModal.classList.remove('open');
+        startRhythmGame();
+      });
+      el.btnResList.addEventListener('click', () => {
+        el.resultModal.classList.remove('open');
+        openSubmenu(state.menuType);
+      });
+      el.btnResHome.addEventListener('click', () => {
+        el.resultModal.classList.remove('open');
+        switchScreen('home');
+      });
+
+      // Re-center sheet music smoothly on resize / orientation change
+      window.addEventListener('resize', () => {
+        if (state.screen === 'practice') {
+          redrawSheet(true);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
