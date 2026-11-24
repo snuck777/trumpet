@@ -1,0 +1,14 @@
+{
+  "name": "trumpet-master",
+  "version": "1.0.0",
+  "description": "트럼펫 마스터 - 트럼펫 운지 & 박자 연습 게임",
+  "main": "index.html",
+  "scripts": {
+    "build": "mkdir -p www && cp index.html www/index.html"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  }
+}
